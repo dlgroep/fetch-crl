@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# fetch-crl-boot  This shell script trigger a run of fetch-crl at boot time
+#
+# chkconfig:	- 65 01
+#
+# description:  Run of fetch-crl, a crl updater, on boot up
+# processname:  fetch-crl
+# config: /etc/fetch-crl.cnf
+# config: /etc/sysconfig/fetch-crl
+#
+
+# fetch-crl-boot must run after the start of xinetd and afs, since the URLs
+# may point to files on an AFS file system or to xinetd-based service URLs
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+# source any environment settings, e.g. for HTTP proxies
+[ -f /etc/sysconfig/fetch-crl ] && . /etc/sysconfig/fetch-crl
+
+lockfile=/var/lock/subsys/fetch-crl-boot
+
+RETVAL=0
+
+start() {
+	action $"Running fetch-crl on boot: " /usr/sbin/fetch-crl -q
+	RETVAL=$?
+	[ "$RETVAL" = 0 ] && touch $lockfile
+}
+
+stop() {
+	RETVAL=0
+	[ "$RETVAL" = 0 ] && rm -f $lockfile
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop) 
+	stop
+	;;
+  restart|force-reload)
+	$0 stop
+        $0 start
+	;;
+  condrestart)
+        [ -f $lockfile ] && {
+           $0 stop
+           $0 start
+        }
+        ;;
+  reload)
+	;;
+  status)
+         if [ -f $lockfile ]  ; then
+           echo -n $"fetch-crl-boot lockfile present" && success
+           RETVAL=0
+         else
+           echo -n $"fetch-crl-boot lockfile missing" && failure
+           RETVAL=1
+         fi
+         echo
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+	exit 1
+esac
+
+exit $RETVAL

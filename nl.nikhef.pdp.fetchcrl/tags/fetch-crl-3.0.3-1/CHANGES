@@ -1,0 +1,330 @@
+==============================================================================
+CHANGES to fetch-crl - the Certificate Revocation List retrieval tool
+==============================================================================
+The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
+a set of installed trust anchors, based on crl_url files or IGTF-style info
+files. It will install these for use with OpenSSL, NSS or third-party tools.
+
+Changes in 3.0.3-1
+----------------------
+* Clean up of man page format macro PU (reported by Mattias Ellert)
+
+Changes in 3.0.2-1
+----------------------
+* Clean up of man page format macro PU (reported by Mattias Ellert)
+
+Changes in 3.0.1-1
+----------------------
+* hunts through more places to find the latest successful CRL download to
+  set the latest local modification time for a CRL 
+  (resolves a comparison error in case output and infodir are unset)
+
+Changes in 3.0.0-0.RC4
+----------------------
+* the config file name has changed to fetch-crl.conf, although a 
+  fetch-crl.cnf file will also be used when present
+* symlinked meta-data files can be ignored with the --nosymlinks option
+  (or nosymlinks in the configuration file). This allows fetch-crl to be
+  used effectively with new-format IGTF distribution before 1.37
+* infinite loop for non-indexed CA file names fixed
+
+Changes in fetch-crl 3.0
+------------------------
+* fetch-crl 3.0 is a complete re-write, and shares no code with the 1.x and
+  2.x series utility of the same name, although the function and some of
+  the syntax is obviously the same
+
+* support for multiple output formats: OpenSSL 1 in dual-hash mode, specific
+  DER and PEM outputs, and NSS databases
+* support for multiple CRLs for a single CA, allowing more than one CA with
+  the same subject name but different CLRs. Review your client software to see
+  if and how these CRLs are used.
+* stateful retrieval helps reduce bandwidth usage by caching the CRLs locally
+  and respecting the Cache Control headers sent by the web server hosting the
+  CRL. This can reduce the number of downloads
+* support for HEAD-only requests when state preservation is used (initially
+  only retrieve HTTP headers, and only if the CRL actually changed to a full
+  download)
+* support for more CRL retrieval protocols (file:// and ftp://)
+* ability to try site-local URLs first, before relying on the URLs shipped with
+  the trust anchor. This allows building an explicit local caching (web) server.
+* ability to specify additional URLs to try in case the URLs shipped with the
+  trust anchor were not responsive. This allows for automatic fall-back to
+  (local or global) mirror services for CRL downloads
+* warnings and errors can be suppressed on a per-trust anchor basis, to allow
+  silencing for particularly unstable trust anchors
+* aging tolerance (the delay time before errors are generated in case downloads
+  consistently fail) can be configured on a per-trust anchor basis
+* parallel downloading for multiple trust anchors
+* minimized use of temporary files in the file system (now limited to the
+  invocation of OpenSSL only, and only for brief periods of time)
+* dependencies on wget, lynx and other unix utilities have been removed
+* explicit web proxy support (using LWP http proxies)
+* completely re-written in perl, with some (hopefully minimal) dependencies:
+  LWP, Sys::Syslog, POSIX. And Data::Dumper (when debugging is enabled),
+  and IO::Select (if parallel downloads are enabled). 
+
+Differences with respect to the previous versions
+
+* when downloading CRLs via https, the server certificate is not checked, 
+  neither for the correct DNS name nor for being issued by a valid CA. Since 
+  the CRL in itself is signed, this is not a security vulnerability. If 
+  stricter checking is anyway desired, and the Crypt::SSLeay perl module has 
+  been installed, set the HTTPS_CA_FILE environment variable before invoking 
+  fetch-crl -- but keep in mind that the DNS name verification is limited 
+  and will (incorrectly) reject DNS names if these are listed only in the 
+  subjectAlternativeName of the server certificate
+* Existing files with a name that matches a CRL target name are overwritten,
+  even if they did not originally contain CRL data. In v2 this was configurable
+  via the FORCE_OVERWRITE configuration setting. In version 3, files are
+  overwritten by default, and this can no longer be configured.
+* fetch-crl3 will no longer check CA certificates for consistency or validity
+  by themselves, only retrieved CRLs are verified 
+
+Downsides of the new version
+
+* it requires perl5 to be installed (tested with perl 5.8.0 and higher) with
+  libwww-perl, whereas version 2 only required a traditional Bourne shell
+* requires a version of OpenSSL (0.9.5a or better) to be installed. Needs
+  OpenSSL 1.0.0 (at least beta5) for dual-hash support.
+* when using parallel downloads, it can only run on pure-POSIX systems
+* parallelism in combination with the NSS database output format is not tested
+* Even when only the NSS database output format has been selected, OpenSSL is
+  still needed for verification and processing 
+
+
+==============================================================================
+
+The change log below applies to the 1.x and 2.x series fetch-crl and is 
+included for historical purposes only. Fetch-crl3, with which this
+changes file is being shipped, is a complete re-write of the utility.
+Although a lot of backwards compatibility has been preserves, there have
+been significant changes and the information below should NOT be used
+to infer any behaviour of fetch-crl3.
+
+Fetch-crl 1.x and 2.x were released under the EU DataGrid License.
+
+Changes in version EGP 2.8.5
+----------------------------
+(2010.06.03)
+
+* fetch-crl was occasionally leaving behind {hash}.r0.XXXXXX.r0 files
+  This has been fixed in this release (patch thanks to Jason Smith, BNL)
+* man page was not compliant to Debian guidelines, this has been fixed
+  (patch thanks to Mattias Ellert, Uppsala University)
+
+Changes in version EGP 2.8.4
+----------------------------
+(2010.04.04)
+
+* Fixes error when randomWait is not set [RH Bug 579488]
+
+Changes in version EGP 2.8.3
+----------------------------
+(2010.03.28)
+
+* Preserve SELinux context for CRL files if SElinux status program exists
+  and selinux is enabled (RH bug 577403)
+* Fix argument parsing on syslog facility specification (RH bug 577387)
+* Increase granularity of the RandomWait and allow for 0 in -r option
+
+Changes in version EGP 2.8.2
+----------------------------
+(2010.03.03)
+
+* Improved support for multiple CRL URLs by downloading until a success
+  is achieved, instead of downloading all of them
+* Imported randomwait patch from Steve Traylen
+
+Changes in version EGP 2.8.1
+----------------------------
+(2010.01.26)
+
+* The installed CRL file is re-checked for validity to catch file system
+  errors and local disk corruption. When possible, it will try to restore
+  a backup copy. Failures are not subject to aging tolerance.
+
+Changes in version EGP 2.8.0
+----------------------------
+(2009.09.22)
+
+* The RPM packaging has been overhauled and is now sufficiently conformant
+  to EPEL and FedoraProject guidelines. 
+* New init scripts and a cron job entry have been added to allow management 
+  of fetch-crl via the chkconfig mechanism
+
+These changes were contributed by Steve Traylen (CERN, Geneva, CH).
+
+Changes in version EGP 2.7.0
+----------------------------
+(2009.01.25)
+
+* Warnings and errors are now counted. If there are errors in the download
+  or verification process for one or more CRLs, the exit status will be 1; 
+  if there are errors in the local setup or in the script invocation, the
+  exit status will be 2.
+* The installed CRLs no longer have the textual representation of the CRL,
+  but only the PEM data blob, thus reducing IO and memory requirements.
+* the CRL aging threshold is now set by default to 24 hours. The previous
+  default was 0. The CRL aging threshold is set in the config file using
+  CRL_AGING_THRESHOLD=<xx>, or with the "-a" command-line argument.
+* Default network timeouts reduced to 10 seconds (was 30) and retries to 2
+* Added caching and conditional downloading. When CACHEDIR is set, the
+  original downloads are preserved and wget timestamping mode enabled.
+  When the content did not change, only the timestamp on the installed
+  CRL is updated. If SLOPPYCRLHASHES is set, the has is calculated based 
+  on the name of the crl_url file, otherwise it is taken from the CRL itself.
+  - The CACHEDIR must be exclusively writable by the user running fetch-crl
+  - Setting CACHEDIR significantly reduced the bandwidth used by fetch-crl
+* Added RESETPATHMODE setting in sysconfig. It defines whether or not to
+  set re-set $PATH to "/bin:/usr/bin" before start. The search for OpenSSL
+  may be done based on the old path.
+  yes=always replace; searchopenssl=search for openssl first and then reset; 
+  no=keep original path, whatever that me be (may be empty if called from cron)
+  Default="yes". This replaces the hard-coded path in the tool!
+* Hidden "FORCE_OVERWRITE" option now has a regular name. This is backwards-
+  compatible. Set FORCE_OVERWRITE=yes if you want files overwritten that
+  have a CRL-like name and ought to have CRL content, but currently do not.
+* Addresses gLite Savannah bugs 28418 and 29559. Bug 27023 is partially
+  addressed. Bug 20062 can be remedied with WGET_OPTS arguments. 
+  Addresses OSG ticket 4673.
+
+Changes in version EGP 2.6.6
+----------------------------
+(2007.09.16)
+(version 2.5.5 is invalid and was not publicly released)
+
+* Added obscure configuration parameter to allow overwriting of
+  arbitrary data files with a downloaded CRL (on request of
+  CERN, see https://savannah.cern.ch/bugs/index.php?29559)
+
+Changes in version EGP 2.6.4
+----------------------------
+(2007.08.15)
+
+* Expired CA issuer certificate now gives a warning instead of an error
+  with the full verification result message
+* additional logfile output target can be selected via the configuration file
+* CRL aging threshold documented in manual page. Errors will now also be 
+  generated in the CRL download failed consistently and the current CRL
+  has already expired
+
+Changes in version EGP 2.6.3
+----------------------------
+(2006.11.13)
+
+* cron job example: fetch-crl invocation syntax error corrected
+
+Changes in version EGP 2.6.2
+----------------------------
+(2006.10.27)
+
+* fixed bug: older wget versions do not recognise --no-check-certificate
+
+Changes in version EGP 2.6.1
+----------------------------
+(2006.10.25)
+
+* fixed local timezone vs UTC error in LastUpdate CRL validation comparison
+* fixed time comparison is the one-hour LastUpdate/download tolerance 
+  (both fixes thanks to Alain Roy)
+* added support for directory names containing whitespace
+* added support for syslog reporting (via -f option or SYSLOGFACILITY directive)
+* SERVERCERTCHECK=no is now the default. It can be reset via the configuration
+  file, or using the "--check-server-certificate" commandline option
+* the main configuration file location (formerly fixed to be
+  /etc/sysconfig/fetch-crl) can now be set via the variable $FETCH_CRL_SYSCONFIG
+* logfile format timestamp and tag have been normalised
+
+Changes in version EGP 2.6
+--------------------------
+(2006.05.20)
+
+* if the current local CRL has a lastUpdate time in the future, and the
+  newly downloaded CRL is older that the current one, allow the installation
+  of the newly downloaded CRL and issue a warning. 
+* added non-suppressable warning in case the newly downloaded CRL has a 
+  lastUpdate time in the future, but install that CRL anyway (as the local
+  clock might have been wrong).
+
+Changes in version EGP 2.5
+--------------------------
+(2006.01.16)
+
+* added additional configuration arguments and configuration variables
+  to skip the server certificate check in wget
+  (to support https:// URLs where the server is authenticated with
+  a certificate that is not part of it's own trusted domain, such as
+  the KISTI URL)
+
+Changes in version EGP 2.4
+--------------------------
+(2005.11.15)
+
+* for those platforms that support the stat(1) command, and in case the
+  .crl_url file is named after the hash of the crl subject name to download,
+  error eporting for individual download errors can be suppressed for 
+  a configurable amount of time as set via the "-a" option (unit: hours).
+
+Changes in version EGP 2.3
+--------------------------
+(2005.11.05)
+
+* do not replace recent CRLs with ones that have an older lastUpdate
+  timestamp (prevents ARP/DNS DoS attacks)
+
+Changes in version EGP 2.2
+--------------------------
+(2005.10.27)
+
+* secure http download by wget recognise the CAs in the trusted directory.
+  solves the issue described in the LCG bug tracking system
+  https://savannah.cern.ch/bugs/index.php?func=detailitem&item_id=12182
+
+Changes in version EGP 2.1
+--------------------------
+(2005.08.12)
+* specifically look for the most recent version of OpenSSL. The
+  one in GLOBUS_LOCATION (which used to take precedence in the
+  previous releases) is outdated in many cases and caused
+  troubles on the LCG  production systems in validating v2 CRLs
+* added manual page fetch-crl(8)
+
+Changes in version EGP 2.0
+--------------------------
+(2005.02.28)
+* name of the installed script changed to "fetch-crl"
+* the cronjob script is no longer installed by default, but supplied
+  as an example in the %doc directory
+* RPM is now relocatable (default install in /usr)
+* READMA and CHANGES file now inclued in %doc tree
+* make install now installs
+* version increased to 2.0
+
+Changes in version EGP 1.9
+--------------------------
+(2005.02.24)
+* the content of the final target CRL file is now checked for
+  containing a valid CRL if it already exists. If it does not
+  contain a CRL, an error is displayed and the file left untouched
+  So making the final ".r0" file in ${outdir} a link to something else
+  will not work, preventing an escalation in the final stage.
+
+Changes in version EGP 1.8
+--------------------------
+(changes from Fabio's version 1.7, 2005.02.24)
+
+* All temporary files (the initial CRL download using wget
+  and the PEM-converted version of that file) are now created using
+  mktemp
+* the RetrieveFileByURL function will not overwrite files that
+  have any data in them
+* Note that the script can be run by a non-priviledged user, but 
+  that the output directory must be made writable by that user 
+  in an out-of-band way.
+
+EDG version 1.7
+---------------
+Imported with consent of Fabio Hernandez and Steve Traylen from
+the original EDG repository. 
+The EU DataGrid License applies, see http://www.eu-datagrid.org/

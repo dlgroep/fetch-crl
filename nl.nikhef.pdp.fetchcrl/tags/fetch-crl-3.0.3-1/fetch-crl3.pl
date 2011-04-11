@@ -1,0 +1,388 @@
+#! /usr/bin/perl -w
+#
+# @(#)$Id$
+#
+# Copyright 2010 David Groep, Nationaal instituut voor
+#                subatomaire fysica NIKHEF
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+package main;
+
+use strict;
+use Getopt::Long qw(:config no_ignore_case bundling);
+use POSIX;
+eval { require LWP or die; }; $@ and die "Please install libwww-perl (LWP)\n";
+
+# import modules that are needed but still external 
+# (the installed version may have these packages embedded in-line)
+#
+require ConfigTiny and import ConfigTiny unless defined &ConfigTiny::new;
+require TrustAnchor and import TrustAnchor unless defined &TrustAnchor::new;
+require CRLWriter and import CRLWriter unless defined &CRLWriter::new;
+require FCLog and import FCLog unless defined &FCLog::new;
+require OSSL and import OSSL unless defined &OSSL::new;
+require CRL and import CRL unless defined &CRL::new;
+
+my $use_DataDumper = eval { require Data::Dumper; };
+my $use_IOSelect = eval { require IO::Select; };
+
+use vars qw/ $log $cnf /;
+
+
+# ###########################################################################
+#
+#
+($cnf,$log) = &init_configuration();
+
+# verify local installation sanity for loaded modules
+$::log->getverbose > 6 and ! $use_DataDumper and
+  $::log->err("Cannot set verbosity higher than 6 without Data::Dumper") and
+  exit(1);
+$::cnf->{_}->{parallelism} and ! $use_IOSelect and
+  $::log->err("Cannot use parallel retrieval without IO::Select") and
+  exit(1);
+
+$use_DataDumper and $::log->verb(7,Data::Dumper::Dumper($cnf));
+
+# set safe path if so requested
+$cnf->{_}->{path} and $ENV{"PATH"} = $cnf->{_}->{path} and
+  $::log->verb(5,"Set PATH to",$ENV{"PATH"});
+  
+# wait up to randomwait seconds to spread download load
+$cnf->{_}->{randomwait} and do {
+  my $wtime = int(rand($cnf->{_}->{randomwait}));
+  $::log->verb(2,"Sleeping $wtime seconds before continuing");
+  sleep($wtime);
+};
+
+
+# the list of trust anchors to process comes from the command line and 
+# all files in the infodir that are metadata or crl urls
+# in the next phase, the suffix will be stripped and the info file
+# when present preferred over the crlurl
+#
+my @metafiles = @ARGV;
+$::cnf->{_}->{"infodir"} and do {
+  foreach my $fn ( 
+      map { glob ( $::cnf->{_}->{"infodir"} . "/$_" ); } "*.info", "*.crl_url"
+    ) { 
+    next if $::cnf->{_}->{nosymlinks} and -l $fn;
+    $fn =~ /.*\/([^\/]+)(\.crl_url|\.info)$/; 
+    push @metafiles, $1 unless grep /$1/,@metafiles or not defined $1;
+  } 
+};
+
+@metafiles or
+  $log->err("No trust anchors to process") and exit($log->exitstatus);
+
+if ( $::cnf->{_}->{parallelism} ) {
+  &parallel_metafiles($::cnf->{_}->{parallelism}, @metafiles);
+} else {
+  &process_metafiles( @metafiles );
+}
+
+$log->flush;
+exit($log->exitstatus);
+
+
+# ###########################################################################
+#
+#
+sub init_configuration() {
+  my ($cnf,$log);
+
+  my ($configfile,$agingtolerance,$infodir,$statedir,$cadir,$httptimeout);
+  my ($output);
+  my @formats;
+  my $verbosity;
+  my $quiet=0;
+  my $help=0;
+  my $debuglevel;
+  my $parallelism=0;
+  my $randomwait;
+  my $nosymlinks;
+
+  $log = FCLog->new("qualified");
+
+  &GetOptions(
+    "c|config=s" => \$configfile,
+    "l|infodir=s" => \$infodir,
+    "cadir=s" => \$cadir,
+    "s|statedir=s" => \$statedir,
+    "T|httptimeout=i" => \$httptimeout,
+    "o|output=s" => \$output,
+    "format=s@" => \@formats,
+    "v|verbose+" => \$verbosity,
+    "h|help+" => \$help,
+    "q|quiet+" => \$quiet,
+    "d|debug+" => \$debuglevel,
+    "p|parallelism=i" => \$parallelism,
+    "nosymlinks+" => \$nosymlinks,
+    "a|agingtolerance=i" => \$agingtolerance,
+    "r|randomwait=i" => \$randomwait,
+    ) or &help and exit(1);
+
+  $help and &help and exit(0);
+
+  $configfile ||= ( -e "/etc/fetch-crl.conf" and "/etc/fetch-crl.conf" );
+  $configfile ||= ( -e "/etc/fetch-crl.cnf" and "/etc/fetch-crl.cnf" );
+  ($quiet > 0) and $verbosity = -$quiet;
+
+  $cnf = ConfigTiny->new();
+  $configfile and 
+    $cnf->read($configfile) || die "Invalid config file $configfile:\n  " . 
+                                   $cnf->errstr . "\n";
+
+  # command-line option overrides
+  $cnf->{_}->{agingtolerance} = $agingtolerance if defined $agingtolerance;
+  $cnf->{_}->{infodir}        = $infodir if defined $infodir;
+  $cnf->{_}->{cadir}          = $cadir if defined $cadir;
+  $cnf->{_}->{statedir}       = $statedir if defined $statedir;
+  $cnf->{_}->{httptimeout}    = $httptimeout if defined $httptimeout;
+  $cnf->{_}->{verbosity}      = $verbosity if defined $verbosity;
+  $cnf->{_}->{debuglevel}     = $debuglevel if defined $debuglevel;
+  $cnf->{_}->{output}         = $output if defined $output;
+  $cnf->{_}->{formats}        = join "",@formats if @formats;
+  $cnf->{_}->{parallelism}    = $parallelism if $parallelism;
+  $cnf->{_}->{randomwait}     = $randomwait if defined $randomwait;
+  $cnf->{_}->{nosymlinks}     = $nosymlinks if defined $nosymlinks;
+
+  # key default values
+  defined $cnf->{_}->{version}  or $cnf->{_}->{version}    = "3+";
+  defined $cnf->{_}->{packager} or $cnf->{_}->{packager}   = "EUGridPMA";
+  defined $cnf->{_}->{openssl}  or $cnf->{_}->{openssl}    = "openssl";
+  defined $cnf->{_}->{agingtolerance} or $cnf->{_}->{agingtolerance} ||= 24;
+  defined $cnf->{_}->{infodir}  or $cnf->{_}->{infodir}    = '/etc/grid-security/certificates';
+  defined $cnf->{_}->{output}   or $cnf->{_}->{output}     = $cnf->{_}->{infodir};
+  defined $cnf->{_}->{cadir}    or $cnf->{_}->{cadir}      = $cnf->{_}->{infodir};
+  defined $cnf->{_}->{statedir} or $cnf->{_}->{statedir}   = "/var/cache/fetch-crl" if -d "/var/cache/fetch-crl" and -w "/var/cache/fetch-crl";
+  defined $cnf->{_}->{formats}  or $cnf->{_}->{formats}    = "openssl";
+  defined $cnf->{_}->{opensslmode} or $cnf->{_}->{opensslmode} = "dual";
+  defined $cnf->{_}->{httptimeout} or $cnf->{_}->{httptimeout} = 120;
+  defined $cnf->{_}->{nametemplate_der} or 
+    $cnf->{_}->{nametemplate_der} = "\@ANCHORNAME\@.\@R\@.crl";
+  defined $cnf->{_}->{nametemplate_pem} or 
+    $cnf->{_}->{nametemplate_pem} = "\@ANCHORNAME\@.\@R\@.crl.pem";
+  defined $cnf->{_}->{catemplate} or 
+    $cnf->{_}->{catemplate} = "\@ALIAS\@.pem".
+                              "\@ALIAS\@.\@R\@\@ANCHORNAME\@.\@R\@";
+
+  $cnf->{_}->{nonssverify}    ||= 0;
+  $cnf->{_}->{nocache}        ||= 0;
+  $cnf->{_}->{nosymlinks}     ||= 0;
+  $cnf->{_}->{verbosity}      ||= 0;
+  $cnf->{_}->{debuglevel}     ||= 0;
+
+  $cnf->{_}->{stateless} and delete $cnf->{_}->{statedir};
+
+  # expand array keys in config
+  defined $cnf->{_}->{formats} and 
+    @{$cnf->{_}->{formats_}} = split(/[;,\s]+/,$cnf->{_}->{formats});
+
+  # sanity check on configuration
+  $cnf->{_}->{statedir} and ! -d $cnf->{_}->{statedir} and
+    die "Invalid state directory " . $cnf->{_}->{statedir} . "\n";
+  $cnf->{_}->{infodir} and ! -d $cnf->{_}->{infodir} and
+    die "Invalid meta-data directory ".$cnf->{_}->{infodir}."\n";
+
+  # initialize logging
+  $log->flush;
+  $cnf->{_}->{logmode} and $log->destremove("qualified") and do {
+    foreach ( split(/[,]+/,$cnf->{_}->{logmode}) ) {
+      if ( /^syslog$/ ) { $log->destadd($_,$cnf->{_}->{syslogfacility}); } 
+      elsif ( /^(direct|qualified|cache)$/ ) { $log->destadd($_); } 
+      else { die "Invalid log destination $_, exiting.\n"; }
+    }
+  };
+  $log->setverbose($cnf->{_}->{verbosity});
+  $log->setdebug($cnf->{_}->{debuglevel});
+
+  return ($cnf,$log);
+}
+
+# ###########################################################################
+#
+#
+sub help() {
+  (my $name = $0) =~ s/.*\///;
+print <<EOHELP;
+The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
+a set of installed trust anchors, based on crl_url files or IGTF-style info
+files. It will install these for use with OpenSSL, NSS or third-party tools.
+
+Usage: $name [-c|--config configfile] [-l|--infodir path]
+  [--cadir path] [-s|--statedir path] [-o|--output path] [--format \@formats]
+  [-T|--httptimeout seconds] [-p|--parallelism n] [--nosymlinks]
+  [-a|--agingtolerance hours] [-r|--randomwait seconds]
+  [-v|--verbose] [-h|--help] [-q|--quiet] [-d|--debug level]
+
+Options:
+ -c | --config path
+        Read configuration data from path, default: /etc/fetch-crl.conf
+ -l | --infodir path
+        Location of the trust anchor meta-data files (crl_url or info),
+        default: /etc/grid-security/certificates
+ --cadir path
+        Location of the trust anchors (default to infodir)
+ -s | --statedir path
+        Location of the historic state data (for caching and delayed-warning)
+ -T | --httptimeout sec
+        Maximum time in seconds to wait for retrieval or a single URL
+ -o | --output path
+        Location of the CRLs written (global default, defaults to infodir
+ --format \@formats
+        Format(s) in which the CRLs will be written (openssl, pem, der, nss)
+ --nosymlinks
+        Do not include meta-data files that are symlinks
+ -v | --verbose
+        Become more talkative
+ -q | --quiet
+        Become really quiet (overrides verbosity)
+ -p | --parallelism n
+        Run up to n parallel trust anchor retrieval processes
+ -a | --agingtolerance hours
+        Be quiet for up to hours hours before raising an error. Until
+        the tolerance has passed, only warnings are raised
+ -r | --randomwait seconds
+        Introduce a random delay of up to seconds seconds before starting
+        any retrieval processes
+ -h | --help 
+        This help text
+
+EOHELP
+
+  return 1;
+}
+
+# ###########################################################################
+#
+#
+sub process_metafiles(@) {
+  my @metafiles = @_;
+
+  foreach my $f ( @metafiles )  { 
+      my $ta = TrustAnchor->new();
+      $cnf->{_}->{"infodir"} and $ta->setInfodir($cnf->{_}->{"infodir"});
+      $ta->loadAnchor($f) or next;
+      $ta->saveLogMode() and $ta->setLogMode();
+      $ta->loadCAfiles() or next;
+      $ta->loadState() or next;
+      $ta->retrieve or next;
+      $ta->verifyAndConvertCRLs or next;
+    
+      my $writer = CRLWriter->new($ta);
+      $writer->writeall() or next;
+      $ta->saveState() or next;
+      $ta->restoreLogMode();
+  }
+
+  return 1;
+}
+
+sub parallel_metafiles($@) {
+  my $parallelism = shift;
+  my @metafiles = @_;
+
+  my %pids = ();           # file handle by processID
+  my %metafile_by_fh = (); # reverse map
+  my $readset = new IO::Select();
+  my %logoutput = ();
+
+  $| = 1;
+
+  $::log->verb(2,"starting up to $parallelism worker processes");
+
+  while ( @metafiles or scalar keys %pids ) {
+    # loop until we have started all possible retrievals AND have
+    # collected all possible output
+
+    ( @metafiles and (scalar keys %pids < $parallelism) ) and do {
+      # we have metafiles left, and have spare process slots
+      my $metafile = shift @metafiles;
+
+
+      $logoutput{$metafile} = "";
+
+      my $cout;
+      my $cpid = open $cout, "-|";
+      defined $cpid and defined $cout or 
+        $::log->err("Cannot fork ($metafile): $!") and next;
+
+      $::log->verb(5,"LOOP: starting process $cpid for $metafile");
+
+      if ( $cpid == 0 ) { # I'm the child that should care for $metafile
+        $0 = "fetch-crl worker $metafile";
+        $::log->cleanse();
+        $::log->destadd("qualified");
+        &process_metafiles($metafile);
+        $::log->flush;
+        exit($::log->exitstatus);
+      } else { # parent
+        $pids{$cpid} = $cout;
+        $readset->add($cout);
+        $metafile_by_fh{$cout} = $metafile;
+      } 
+    };
+
+    # do a select loop over the outstanding requests to collect messages
+    # if we are in the process of starting more processes, we just
+    # briefly poll out pending output so as not to have blocking 
+    # children, but if we have started as many children as we ought to
+    # we put in a longer timeout -- any output on a handle will
+    # get us out of the select and into flushing mode again
+    my $timeout = (@metafiles && (scalar keys %pids < $parallelism) ? 0.1:1);
+    
+    $::log->verb(6,"PLOOP: select with timeout $timeout");
+    my ( $rh_set ) = IO::Select->select($readset, undef, undef, $timeout);
+
+    foreach my $fh ( @$rh_set ) {
+      my $metafile = $metafile_by_fh{$fh};
+      # we know there is at least one byte to read, but also that 
+      # any client sends complete
+      while (1) {
+        my $char;
+        my $length = sysread $fh, $char, 1;
+        if ( $length ) {
+          $logoutput{$metafile} .= $char;
+          $char eq "\n" and last;
+        } else {
+          #expected a char but got eof
+          $readset->remove($fh);
+          close($fh);
+          map { 
+            $pids{$_} == $fh and 
+              waitpid($_,WNOHANG) and 
+              delete $pids{$_} and 
+              $::log->verb(5,"Collected pid $_ (rc=$?),",
+                             length($logoutput{$metafile}),"bytes log output");
+            } keys %pids;
+          last;
+        }
+      }
+    }
+  }
+
+  # log out all collected log data from our children
+  foreach my $metafile ( sort keys %logoutput ) {
+    foreach my $line ( split(/\n/,$logoutput{$metafile}) ) {
+      $line =~ /^ERROR\s+(.*)$/ and $::log->err($1);
+      $line =~ /^WARN\s+(.*)$/ and $::log->warn($1);
+      $line =~ /^VERBOSE\((\d+)\)\s+(.*)$/ and $::log->verb($1,$2);
+      $line =~ /^DEBUG\((\d+)\)\s+(.*)$/ and $::log->debug($1,$2);
+    }
+  }
+
+  return 1;
+}
