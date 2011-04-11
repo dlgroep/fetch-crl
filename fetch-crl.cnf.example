@@ -119,13 +119,6 @@
 # nonssverify
 #
 # ---------------------------------------------------------------------------
-# use up to <parallelism> thread in parallel to retrieve and install CRLs
-# This feature is likely NOT COMPATIBLE with the use of NSS databases for
-# CRLs, due to thread contention issues
-#
-# parallelism = 5
-#
-# ---------------------------------------------------------------------------
 # wait up to <randomwait> seconds before doing anything at all 
 # useful for randoming the start time and download from cron across the world
 #

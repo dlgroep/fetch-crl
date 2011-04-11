@@ -80,7 +80,7 @@ $::cnf->{_}->{"infodir"} and do {
     ) { 
     next if $::cnf->{_}->{nosymlinks} and -l $fn;
     $fn =~ /.*\/([^\/]+)(\.crl_url|\.info)$/; 
-    push @metafiles, $1 unless grep /^$1$/,@metafiles or not defined $1;
+    push @metafiles, $1 unless grep /$1/,@metafiles or not defined $1;
   } 
 };
 
