@@ -67,20 +67,12 @@ fetch-crl: $(SOURCEFILES)
 configure: $(shell find . -name \*\.cin 2>/dev/null | sed -e 's/.cin//' || echo)
 
 install: configure
-	mkdir -p $(ETC)
-	mkdir -p $(PREFIX)
-	mkdir $(PREFIX)/sbin
-	mkdir $(PREFIX)/share
-	mkdir $(PREFIX)/share/doc
-	mkdir $(PREFIX)/share/doc/$(RELEASE)
-	mkdir $(PREFIX)/share/man
-	mkdir $(PREFIX)/share/man/man8
-	install -m755 fetch-crl              $(PREFIX)/sbin/fetch-crl
-	install -m644 fetch-crl-cron.cron    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.cron
-	install -m644 fetch-crl-cron.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.init
-	install -m644 fetch-crl-boot.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-boot.init
-	install -m644 fetch-crl.8            $(PREFIX)/share/man/man8/fetch-crl.8
-	install -m644 fetch-crl.cnf          $(ETC)/fetch-crl.conf
+	install -m755 -D fetch-crl           $(PREFIX)/sbin/fetch-crl
+	install -m644 -D fetch-crl-cron.cron $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.cron
+	install -m644 -D fetch-crl-cron.init $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.init
+	install -m644 -D fetch-crl-boot.init $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-boot.init
+	install -m644 -D fetch-crl.8         $(PREFIX)/share/man/man8/fetch-crl.8
+	install -m644 -D fetch-crl.cnf       $(ETC)/fetch-crl.conf
 	install -m644 fetch-crl.cnf.example  $(PREFIX)/share/doc/$(RELEASE)/fetch-crl.conf.example
 	install -m644 README                 $(PREFIX)/share/doc/$(RELEASE)/README
 	install -m644 NOTICE                 $(PREFIX)/share/doc/$(RELEASE)/NOTICE

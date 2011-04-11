@@ -80,7 +80,7 @@ $::cnf->{_}->{"infodir"} and do {
     ) { 
     next if $::cnf->{_}->{nosymlinks} and -l $fn;
     $fn =~ /.*\/([^\/]+)(\.crl_url|\.info)$/; 
-    push @metafiles, $1 unless grep /^$1$/,@metafiles or not defined $1;
+    push @metafiles, $1 unless grep /$1/,@metafiles or not defined $1;
   } 
 };
 
@@ -113,7 +113,6 @@ sub init_configuration() {
   my $parallelism=0;
   my $randomwait;
   my $nosymlinks;
-  my $cfgdir;
 
   $log = FCLog->new("qualified");
 
@@ -122,7 +121,6 @@ sub init_configuration() {
     "l|infodir=s" => \$infodir,
     "cadir=s" => \$cadir,
     "s|statedir=s" => \$statedir,
-    "cfgdir=s" => \$cfgdir,
     "T|httptimeout=i" => \$httptimeout,
     "o|output=s" => \$output,
     "format=s@" => \@formats,
@@ -146,16 +144,6 @@ sub init_configuration() {
   $configfile and 
     $cnf->read($configfile) || die "Invalid config file $configfile:\n  " . 
                                    $cnf->errstr . "\n";
-
-  ( defined $cnf->{_}->{cfgdir} and $cfgdir = $cnf->{_}->{cfgdir} ) 
-    unless defined $cfgdir;
-  $cfgdir ||= "/etc/fetch-crl.d";
-  if ( defined $cfgdir and -d $cfgdir and opendir(my $dh,$cfgdir) ) {
-    while ( my $fn = readdir $dh ) { 
-      -f "$cfgdir/$fn" and -r "$cfgdir/$fn" and $cnf->read("$cfgdir/$fn");
-    }
-    close $dh;
-  }
 
   # command-line option overrides
   $cnf->{_}->{agingtolerance} = $agingtolerance if defined $agingtolerance;
