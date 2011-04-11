@@ -72,9 +72,9 @@ fi
 %{_initddir}/%{name}-cron
 %{_initddir}/%{name}-boot
 %{_localstatedir}/cache/fetch-crl
-%doc /usr/share/man/man8
+%doc /usr/share/man/man8/fetch-crl.8.gz
 %doc %{_defaultdocdir}/%{name}-%{version}
-%config(noreplace) %{_sysconfdir}/fetch-crl.conf
+%config(noreplace) %{_sysconfdir}/fetch-crl.cnf
 %config(noreplace) %{_sysconfdir}/cron.d/fetch-crl.cron
 
 

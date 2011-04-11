@@ -17,8 +17,10 @@ sub b64decode
 
     my $str = shift;
     $str =~ tr|A-Za-z0-9+=/||cd;            # remove non-base64 chars
-    length($str) % 4 and 
-      die "Internal error in state: length of base64 data not a multiple of 4";
+    if (length($str) % 4) {
+        require Carp;
+        Carp::carp("Length of base64 data not a multiple of 4")
+    }
     $str =~ s/=+$//;                        # remove padding
     $str =~ tr|A-Za-z0-9+/| -_|;            # convert to uuencoded format
     return "" unless length $str;

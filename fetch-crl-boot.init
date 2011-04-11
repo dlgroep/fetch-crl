@@ -6,7 +6,7 @@
 #
 # description:  Run of fetch-crl, a crl updater, on boot up
 # processname:  fetch-crl
-# config: /etc/fetch-crl.conf
+# config: /etc/fetch-crl.cnf
 # config: /etc/sysconfig/fetch-crl
 #
 

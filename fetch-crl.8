@@ -1,6 +1,7 @@
 .\" "@(#)$Id: fetch-crl.8,v 1.6 2009/09/21 20:22:32 pmacvsdg Exp $"
 .\"
 .\" 
+.PU
 .TH FETCH-CRL 8 local "Trust Anchor Utilities"
 .SH NAME
 fetch-crl \- retrieve certificate revocation lists
@@ -33,7 +34,8 @@ more URLs can be specified from which the specific CRL can be retrieved.
 There are several supported formats for CRL stores:
 .IP openssl
 has a directory in which 
-.I hash.
+.I hash
+\.r
 .I i
 files are stored, one CRL per file, and all CRLs for the trust anchors 
 whose subject distinguished name hashes to
@@ -180,11 +182,11 @@ Please see
 .B http://www.nikhef.nl/grid/gridwiki/index.php/FetchCRL3
 for a description of the configuation options. The default location
 of the configuration file is 
-.IR /etc/fetch-crl.conf .
+.IR /etc/fetch-crl.cnf .
 
 .SH NOTES
 Defaults can be set in the fetch-crl system configuration file
-/etc/fetch-crl.conf.
+/etc/fetch-crl.cnf.
 
 .SH "SEE ALSO"
 openssl(1), 

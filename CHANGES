@@ -5,47 +5,6 @@ The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
 a set of installed trust anchors, based on crl_url files or IGTF-style info
 files. It will install these for use with OpenSSL, NSS or third-party tools.
 
-Changes in 3.0.6-1
-----------------------
-* Response parsing disabled to suppress superfluous warning on unexpected 
-  UTF-8 respons when retrieving a CRL (solves RedHat Bugzilla 688902)
-
-Changes in 3.0.5-1
-----------------------
-* CRLs for multiple similarly-named trust anchors might not all be downloaded.
-  This is fixed in this release.
-* Spurious "restoreLogMode" internal errors are no longer raised
-
-Changes in 3.0.4-1
-----------------------
-* Add support for directory based drop-in configuration in /etc/fetch-crl.d/
-* Only use cached CRL contents if the nextUpdate time of the cached CRL is 
-  still in the future. This will ensure that a new download is attempted 
-  each and everytime for CRLs that have already expired.
-
-Changes in 3.0.3-1
-----------------------
-* Clean up of man page format macro PU (reported by Mattias Ellert)
-
-Changes in 3.0.2-1
-----------------------
-* Clean up of man page format macro PU (reported by Mattias Ellert)
-
-Changes in 3.0.1-1
-----------------------
-* hunts through more places to find the latest successful CRL download to
-  set the latest local modification time for a CRL 
-  (resolves a comparison error in case output and infodir are unset)
-
-Changes in 3.0.0-0.RC4
-----------------------
-* the config file name has changed to fetch-crl.conf, although a 
-  fetch-crl.cnf file will also be used when present
-* symlinked meta-data files can be ignored with the --nosymlinks option
-  (or nosymlinks in the configuration file). This allows fetch-crl to be
-  used effectively with new-format IGTF distribution before 1.37
-* infinite loop for non-indexed CA file names fixed
-
 Changes in fetch-crl 3.0
 ------------------------
 * fetch-crl 3.0 is a complete re-write, and shares no code with the 1.x and

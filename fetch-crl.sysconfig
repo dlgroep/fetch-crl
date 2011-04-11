@@ -1,0 +1,57 @@
+# Configuration file for fetch-crl v2.7.x
+
+# Directory containing .crl_url files and output directory
+
+CRLDIR=/etc/grid-security/certificates
+QUIET=yes
+
+# The time in hours for which CRL download failures are accepted
+# without printing an error (instead, a warning is generated)
+# Default=24hours (used to be 0 for versions <= 2.6.6).
+# Can also overridden with the -a command-line argument 
+#CRL_AGING_THRESHOLD=24
+
+# Does the path need to be set explicitly, and if so, should we look
+# for OpenSSL with the 'old' path? Valid values are "yes", "searchopenssl"
+# and "no". Default=yes
+#RESETPATHMODE=yes
+
+# Write messages also to syslog using logger(1) if and only if the facility
+# name is set. When empty, no syslog messages are generated. Default is
+# empty. For valid facility values see logger(1)
+#SYSLOGFACILITY=
+
+# The timeout and retry arguments given to wget: 
+# ... -t $WGET_RETRIES -T $WGET_TIMEOUT ...
+# Default: retries=2, timeout=10
+#WGET_RETRIES=2
+#WGET_TIMEOUT=10
+# Other options to provide to wget after those set above
+#WGET_OPTS=
+
+# Overwrite files that ought to have a CRL in them, but for some 
+# reason do not. There is a remote possibility that you will overwrite
+# the wrong file if you set this to "yes". Leave it to the default "no",
+# unless your file system suffers random data corruption. So: "yes" is
+# ONLY needed if your file system is rotten!
+# Default: no
+#FORCE_OVERWRITE=no
+
+# Force printing of all warning messages (usually driven by -v) if set to
+# "yes". Default is no.
+#ALLWARNINGS=no
+
+# Path to an explicit OpenSSL version to use. Default will look through
+# the path (depending on RESETPATHMODE) and Globus location directories
+#FETCH_CRL_OPENSSL=<path>
+
+# Path of a download cache directory, *exclusively writable by the user
+# running fetch-crl*, where the original downloads are stored. The
+# cache is ONLY used if this variable is set. Default is NO cache.
+# You will need to manually create this directory first with proper permissions
+#CACHEDIR=/var/cache/fetch-crl
+#CACHEDIR=${CRLDIR}/cache
+
+# Use the name of the crl_url file to find the name of the crl hash. Default
+# is to calculate the has from the CRL data itself. Set to "yes" to enable.
+#SLOPPYCRLHASHES=

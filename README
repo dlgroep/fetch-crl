@@ -20,7 +20,7 @@ Usage: fetch-crl [-c|--config configfile] [-l|--infodir path]
 
 Options:
  -c | --config path
-        Read configuration data from path, default: /etc/fetch-crl.conf
+        Read configuration data from path, default: /etc/fetch-crl.cnf
  -l | --infodir path
         Location of the trust anchor meta-data files (crl_url or info),
         default: /etc/grid-security/certificates
@@ -57,7 +57,7 @@ usually do what you want, if you use OpenSSL-like applications.
 
 If you want, you can tune fetch-crl in a myriad of ways, by setting any of the
 flags or options in the configuration file. This configuration file is looked
-for in "/etc/fetch-crl.conf" by default, but an alternative location can be
+for in "/etc/fetch-crl.cnf" by default, but an alternative location can be
 specified with the "-c" command-line option.
 
 Please look at the web site or in the example configuration file for more

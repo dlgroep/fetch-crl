@@ -46,8 +46,8 @@ sub setLogMode($) {
 sub restoreLogMode($) {
   my $self = shift;
   return 0 unless defined $self;
-  (defined $self->{"preserve_warnings"} and defined $self->{"preserve_errors"})
-    or die "Internal error: restoreLogMode called without previous save\n";
+  $self->{"preserve_warnings"} and $self->{"preserve_errors"} or
+    die "Internal error: restoreLogMode called without previous save\n";
   $::log->setwarnings($self->{"preserve_warnings"});
   $::log->seterrors($self->{"preserve_errors"});
   return 1;
@@ -289,9 +289,6 @@ sub loadCAfiles($) {
                               $self->{"alias"},"in",$cadir);
       return $idx?1:0;
     };
-    # is the new one any different from the previous (i.e. is the CA indexed?)
-    $#{$self->{"cafile"}} >= 0 and
-      $cafile eq $self->{"cafile"}[$#{$self->{"cafile"}}] and return 1;
     push @{$self->{"cafile"}}, $cafile;
     $::log->verb(3,"Added CA file $idx: $cafile");
   } while(++$idx);
@@ -329,10 +326,7 @@ sub loadState($$) {
              # are NOT supported for this heuristic
     if ( ! defined $self->{"crl"}[$i]{"state"}{"mtime"} ) {
       my $mtime;
-      STATEHUNT: foreach my $output ( ( $::cnf->{_}->{"output"},
-           $::cnf->{_}->{"output_der"}, $::cnf->{_}->{"output_pem"},
-           $::cnf->{_}->{"output_nss"}, $::cnf->{_}->{"output_openssl"}) ) {
-        defined $output and $output or next;
+      STATEHUNT: foreach my $output ( @{$::cnf->{_}->{"output_"}} ) {
         foreach my $file (
               $self->{"nametemplate_der"},
               $self->{"nametemplate_pem"},
@@ -350,10 +344,6 @@ sub loadState($$) {
       $::log->verb(3,"Inferred mtime for",$self->{"alias"},"is",$mtime) if $mtime;
       $self->{"crl"}[$i]{"state"}{"mtime"} = $mtime if $mtime;
     }
-
-    # as a last resort, set mtime to curren time
-    $self->{"crl"}[$i]{"state"}{"mtime"} ||= time;
-
   }
   return 1;
 }
@@ -468,7 +458,6 @@ sub retrieveHTTP($$) {
   eval {
     local $SIG{ALRM}=sub{die "timed out after ".$self->{"httptimeout"}."s\n";};
     alarm $self->{"httptimeout"};
-    $ua->parse_head(0);
     $response = $ua->get($url);
     alarm 0;
   };
@@ -548,7 +537,6 @@ sub retrieve($) {
     # if we have a cached piece of fresh data, return that one
     if ( !$self->{"nocache"} and
           ($self->{"crl"}[$i]{"state"}{"freshuntil"} || 0) > time and
-          ($self->{"crl"}[$i]{"state"}{"nextupdate"} || time) >= time and
           $self->{"crl"}[$i]{"state"}{"b64data"} ) {
       $::log->verb(3,"Using cached content for",$self->{"alias"},"index",$i);
       $::log->verb(4,"Content dated",
@@ -690,7 +678,7 @@ sub verifyAndConvertCRLs($) {
     if ( ! $crl->getLastUpdate ) {
       push @verifyMessages,"downloaded CRL lastUpdate could not be derived";
     } elsif ( $oldlastupdate and ($crl->getLastUpdate < $oldlastupdate) and
-         ($self->{"crl"}[$i]{"state"}{"mtime"} <= time)
+         ($self->{"crl"}[$i]{"state"}{"mtime"} < time)
        ) {
       push @verifyMessages,"downloaded CRL lastUpdate predates installed CRL,",
                            "and current version has sane timestamp";

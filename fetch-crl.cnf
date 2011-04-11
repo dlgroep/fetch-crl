@@ -4,5 +4,4 @@
 #
 infodir = /etc/grid-security/certificates
 agingtolerance = 24
-nosymlinks
 nowarnings

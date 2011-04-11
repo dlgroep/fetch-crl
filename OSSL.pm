@@ -127,7 +127,7 @@ sub Exec3pipe($$@) {
 
   my ($tmpfh,$tmpname);
   $datain and do {
-   ($tmpfh,$tmpname) = tempfile("fetchcrl3.XXXXXX", DIR=>'/tmp');
+   ($tmpfh,$tmpname) = tempfile("fetchcrl3.XXXXXX", DIR=>'/tmp', UNLINK=>1);
    $|=1;
    print $tmpfh $datain;
    close $tmpfh;
@@ -194,14 +194,14 @@ sub Exec3file($$@) {
   $|=1;
   $datain and do {
    ($tmpin,$tmpinname) = tempfile("fetchcrl3in.XXXXXX", 
-                                  DIR=>$tmpdir);
+                                  DIR=>$tmpdir, UNLINK=>1);
    print $tmpin $datain;
    close $tmpin;
   };
   ($tmpout,$tmpoutname) = tempfile("fetchcrl3out.XXXXXX", 
-                                   DIR=>$tmpdir);
+                                   DIR=>$tmpdir, UNLINK=>1);
   ($tmperr,$tmperrname) = tempfile("fetchcrl3out.XXXXXX", 
-                                   DIR=>$tmpdir);
+                                   DIR=>$tmpdir, UNLINK=>1);
 
   my $pid = fork();
 

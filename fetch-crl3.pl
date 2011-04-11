@@ -78,9 +78,8 @@ $::cnf->{_}->{"infodir"} and do {
   foreach my $fn ( 
       map { glob ( $::cnf->{_}->{"infodir"} . "/$_" ); } "*.info", "*.crl_url"
     ) { 
-    next if $::cnf->{_}->{nosymlinks} and -l $fn;
     $fn =~ /.*\/([^\/]+)(\.crl_url|\.info)$/; 
-    push @metafiles, $1 unless grep /^$1$/,@metafiles or not defined $1;
+    push @metafiles, $1 unless grep /$1/,@metafiles or not defined $1;
   } 
 };
 
@@ -112,8 +111,6 @@ sub init_configuration() {
   my $debuglevel;
   my $parallelism=0;
   my $randomwait;
-  my $nosymlinks;
-  my $cfgdir;
 
   $log = FCLog->new("qualified");
 
@@ -122,7 +119,6 @@ sub init_configuration() {
     "l|infodir=s" => \$infodir,
     "cadir=s" => \$cadir,
     "s|statedir=s" => \$statedir,
-    "cfgdir=s" => \$cfgdir,
     "T|httptimeout=i" => \$httptimeout,
     "o|output=s" => \$output,
     "format=s@" => \@formats,
@@ -131,14 +127,12 @@ sub init_configuration() {
     "q|quiet+" => \$quiet,
     "d|debug+" => \$debuglevel,
     "p|parallelism=i" => \$parallelism,
-    "nosymlinks+" => \$nosymlinks,
     "a|agingtolerance=i" => \$agingtolerance,
     "r|randomwait=i" => \$randomwait,
     ) or &help and exit(1);
 
   $help and &help and exit(0);
 
-  $configfile ||= ( -e "/etc/fetch-crl.conf" and "/etc/fetch-crl.conf" );
   $configfile ||= ( -e "/etc/fetch-crl.cnf" and "/etc/fetch-crl.cnf" );
   ($quiet > 0) and $verbosity = -$quiet;
 
@@ -146,16 +140,6 @@ sub init_configuration() {
   $configfile and 
     $cnf->read($configfile) || die "Invalid config file $configfile:\n  " . 
                                    $cnf->errstr . "\n";
-
-  ( defined $cnf->{_}->{cfgdir} and $cfgdir = $cnf->{_}->{cfgdir} ) 
-    unless defined $cfgdir;
-  $cfgdir ||= "/etc/fetch-crl.d";
-  if ( defined $cfgdir and -d $cfgdir and opendir(my $dh,$cfgdir) ) {
-    while ( my $fn = readdir $dh ) { 
-      -f "$cfgdir/$fn" and -r "$cfgdir/$fn" and $cnf->read("$cfgdir/$fn");
-    }
-    close $dh;
-  }
 
   # command-line option overrides
   $cnf->{_}->{agingtolerance} = $agingtolerance if defined $agingtolerance;
@@ -169,7 +153,6 @@ sub init_configuration() {
   $cnf->{_}->{formats}        = join "",@formats if @formats;
   $cnf->{_}->{parallelism}    = $parallelism if $parallelism;
   $cnf->{_}->{randomwait}     = $randomwait if defined $randomwait;
-  $cnf->{_}->{nosymlinks}     = $nosymlinks if defined $nosymlinks;
 
   # key default values
   defined $cnf->{_}->{version}  or $cnf->{_}->{version}    = "3+";
@@ -193,7 +176,6 @@ sub init_configuration() {
 
   $cnf->{_}->{nonssverify}    ||= 0;
   $cnf->{_}->{nocache}        ||= 0;
-  $cnf->{_}->{nosymlinks}     ||= 0;
   $cnf->{_}->{verbosity}      ||= 0;
   $cnf->{_}->{debuglevel}     ||= 0;
 
@@ -236,13 +218,13 @@ files. It will install these for use with OpenSSL, NSS or third-party tools.
 
 Usage: $name [-c|--config configfile] [-l|--infodir path]
   [--cadir path] [-s|--statedir path] [-o|--output path] [--format \@formats]
-  [-T|--httptimeout seconds] [-p|--parallelism n] [--nosymlinks]
+  [-T|--httptimeout seconds] [-p|--parallelism n]
   [-a|--agingtolerance hours] [-r|--randomwait seconds]
   [-v|--verbose] [-h|--help] [-q|--quiet] [-d|--debug level]
 
 Options:
  -c | --config path
-        Read configuration data from path, default: /etc/fetch-crl.conf
+        Read configuration data from path, default: /etc/fetch-crl.cnf
  -l | --infodir path
         Location of the trust anchor meta-data files (crl_url or info),
         default: /etc/grid-security/certificates
@@ -256,8 +238,6 @@ Options:
         Location of the CRLs written (global default, defaults to infodir
  --format \@formats
         Format(s) in which the CRLs will be written (openssl, pem, der, nss)
- --nosymlinks
-        Do not include meta-data files that are symlinks
  -v | --verbose
         Become more talkative
  -q | --quiet
