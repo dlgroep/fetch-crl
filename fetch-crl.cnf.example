@@ -6,14 +6,6 @@
 # use SEMICOLON (;) or \001 (^A) as list separators in values
 #
 # ---------------------------------------------------------------------------
-# cfgdir sets the directory where subordinate configuration files are
-# found. These files are read in addition to the main config file.
-# The default directory is /etc/fetch-crl.d/ and is used by default, so
-# to suppress this behaviour set this to the empty value ""
-#
-# cfgdir = /etc/fetch-crl.d
-#
-# ---------------------------------------------------------------------------
 # infoset set the location where the meta-data files (.info or .crl_url)
 # are help by default. All trust anchors listed there are processes, so
 # to suppress this behaviour set this to the empty value ""
@@ -117,13 +109,6 @@
 # "-B" option to the crlutil tool
 #
 # nonssverify
-#
-# ---------------------------------------------------------------------------
-# use up to <parallelism> thread in parallel to retrieve and install CRLs
-# This feature is likely NOT COMPATIBLE with the use of NSS databases for
-# CRLs, due to thread contention issues
-#
-# parallelism = 5
 #
 # ---------------------------------------------------------------------------
 # wait up to <randomwait> seconds before doing anything at all 

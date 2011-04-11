@@ -46,8 +46,8 @@ sub setLogMode($) {
 sub restoreLogMode($) {
   my $self = shift;
   return 0 unless defined $self;
-  (defined $self->{"preserve_warnings"} and defined $self->{"preserve_errors"})
-    or die "Internal error: restoreLogMode called without previous save\n";
+  $self->{"preserve_warnings"} and $self->{"preserve_errors"} or
+    die "Internal error: restoreLogMode called without previous save\n";
   $::log->setwarnings($self->{"preserve_warnings"});
   $::log->seterrors($self->{"preserve_errors"});
   return 1;
@@ -468,7 +468,6 @@ sub retrieveHTTP($$) {
   eval {
     local $SIG{ALRM}=sub{die "timed out after ".$self->{"httptimeout"}."s\n";};
     alarm $self->{"httptimeout"};
-    $ua->parse_head(0);
     $response = $ua->get($url);
     alarm 0;
   };
@@ -548,7 +547,6 @@ sub retrieve($) {
     # if we have a cached piece of fresh data, return that one
     if ( !$self->{"nocache"} and
           ($self->{"crl"}[$i]{"state"}{"freshuntil"} || 0) > time and
-          ($self->{"crl"}[$i]{"state"}{"nextupdate"} || time) >= time and
           $self->{"crl"}[$i]{"state"}{"b64data"} ) {
       $::log->verb(3,"Using cached content for",$self->{"alias"},"index",$i);
       $::log->verb(4,"Content dated",
