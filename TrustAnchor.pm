@@ -121,7 +121,7 @@ sub loadAnchor($$) {
         $::log->err("File $path$basename$suffix contains a non-URL entry") 
           and close CRLURL and return 0;
 
-      $urllist and $urllist .= "";
+      $urllist and $urllist .= "\001";
       $urllist .= $url;
     }
     close CRLURL;
@@ -152,7 +152,7 @@ sub loadAnchor($$) {
 
     @{$self->{"crlurls"}} = ();
     for ( my $i=0 ; defined $info->{_}{"crl_url.".$i} ; $i++ ) {
-      $info->{_}{"crl_url.".$i} =~ s/[;\s]+//g;
+      $info->{_}{"crl_url.".$i} =~ s/[;\s]+/\001/g;
       $info->{_}{"crl_url.".$i} =~ s/^\s*([^\s]*)\s*$/$1/;
 
       $info->{_}{"crl_url.".$i} =~ /^\w+:\/\// or
@@ -213,36 +213,36 @@ sub loadAnchor($$) {
     my $i = 0;
     while ( defined ($::cnf->{$self->{$section}}->{"crl_url.".$i}) ) {
       my $urls;
-      ($urls=$::cnf->{$self->{$section}}->{"crl_url.".$i} )=~s/[;\s]+//g;
+      ($urls=$::cnf->{$self->{$section}}->{"crl_url.".$i} )=~s/[;\s]+/\001/g;
       ${$self->{"crlurls"}}[$i] = $urls;
       $i++;
     }
   }
 
   # templates to construct a CA name may still have other separators
-  $self->{"catemplate"} =~ s/[;\s]+//g;
+  $self->{"catemplate"} =~ s/[;\s]+/\001/g;
 
   # select only http/https/ftp/file URLs 
   # also transform the URLs using the base patterns and prepend any 
   # local URL patterns (@ANCHORNAME@, @ALIAS@, and @R@)
   for ( my $i=0; $i <= $#{$self->{"crlurls"}} ; $i++ ) {
     my $urlstring = @{$self->{"crlurls"}}[$i];
-    my @urls = split(//,$urlstring);
+    my @urls = split(/\001/,$urlstring);
     $urlstring="";
     foreach my $url ( @urls ) {
       if ( $url =~ /^(http:|https:|ftp:|file:)/ ) {
-        $urlstring.="" if $urlstring; $urlstring.=$url;
+        $urlstring.="\001" if $urlstring; $urlstring.=$url;
       } else { 
         $::log->verb(0,"URL $url in $basename$suffix unsupported, ignored");
       }
     }
     if ( my $purl = $self->{"prepend_url"} ) {
       $purl =~ s/\@R\@/$i/g;
-      $urlstring = join "" , $purl , $urlstring;
+      $urlstring = join "\001" , $purl , $urlstring;
     }
     if ( my $purl = $self->{"postpend_url"} ) {
       $purl =~ s/\@R\@/$i/g;
-      $urlstring = join "" , $urlstring, $purl;
+      $urlstring = join "\001" , $urlstring, $purl;
     }
     if ( ! $urlstring ) {
       $::log->err("No usable CRL URLs for",$self->getAnchorName);
@@ -279,7 +279,7 @@ sub loadCAfiles($) {
   @{$self->{"cafile"}} = ();
   do {
     my $cafile;
-    foreach my $catpl ( split //, $self->{"catemplate"} ) {
+    foreach my $catpl ( split /\001/, $self->{"catemplate"} ) {
       $catpl =~ s/\@R\@/$idx/g;
       -e $cadir.'/'.$catpl and 
         $cafile = $cadir.'/'.$catpl and last;
@@ -333,13 +333,14 @@ sub loadState($$) {
            $::cnf->{_}->{"output_der"}, $::cnf->{_}->{"output_pem"},
            $::cnf->{_}->{"output_nss"}, $::cnf->{_}->{"output_openssl"}) ) {
         defined $output and $output or next;
-        foreach my $file (
+        foreach my $ref (
               $self->{"nametemplate_der"},
               $self->{"nametemplate_pem"},
               $self->{"alias"}.".r\@R\@",
               $self->{"anchorname"}.".r\@R\@",
             ) {
-          next unless $file;
+          next unless $ref;
+          my $file = $ref; # copy, not to change original
           $file =~ s/\@R\@/$i/g;
           $file = join "/", $output, $file;
           next if ! -e $file;
@@ -563,7 +564,7 @@ sub retrieve($) {
         "sourceurl" => $self->{"crl"}[$i]{"state"}{"sourceurl"} || "null:"
       );
     } else {
-      foreach my $url ( split(//,$self->{"crlurls"}[$i]) ) {
+      foreach my $url ( split(/\001/,$self->{"crlurls"}[$i]) ) {
         # of these, the first one wins
         $url =~ /^(http:|https:|ftp:)/ and 
           ($result,%response) = $self->retrieveHTTP($i,$url);

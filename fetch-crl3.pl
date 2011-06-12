@@ -166,7 +166,7 @@ sub init_configuration() {
   $cnf->{_}->{verbosity}      = $verbosity if defined $verbosity;
   $cnf->{_}->{debuglevel}     = $debuglevel if defined $debuglevel;
   $cnf->{_}->{output}         = $output if defined $output;
-  $cnf->{_}->{formats}        = join "",@formats if @formats;
+  $cnf->{_}->{formats}        = join "\001",@formats if @formats;
   $cnf->{_}->{parallelism}    = $parallelism if $parallelism;
   $cnf->{_}->{randomwait}     = $randomwait if defined $randomwait;
   $cnf->{_}->{nosymlinks}     = $nosymlinks if defined $nosymlinks;
@@ -188,8 +188,8 @@ sub init_configuration() {
   defined $cnf->{_}->{nametemplate_pem} or 
     $cnf->{_}->{nametemplate_pem} = "\@ANCHORNAME\@.\@R\@.crl.pem";
   defined $cnf->{_}->{catemplate} or 
-    $cnf->{_}->{catemplate} = "\@ALIAS\@.pem".
-                              "\@ALIAS\@.\@R\@\@ANCHORNAME\@.\@R\@";
+    $cnf->{_}->{catemplate} = "\@ALIAS\@.pem\001".
+                              "\@ALIAS\@.\@R\@\001\@ANCHORNAME\@.\@R\@";
 
   $cnf->{_}->{nonssverify}    ||= 0;
   $cnf->{_}->{nocache}        ||= 0;
@@ -201,7 +201,7 @@ sub init_configuration() {
 
   # expand array keys in config
   defined $cnf->{_}->{formats} and 
-    @{$cnf->{_}->{formats_}} = split(/[;,\s]+/,$cnf->{_}->{formats});
+    @{$cnf->{_}->{formats_}} = split(/[\001;,\s]+/,$cnf->{_}->{formats});
 
   # sanity check on configuration
   $cnf->{_}->{statedir} and ! -d $cnf->{_}->{statedir} and
@@ -212,7 +212,7 @@ sub init_configuration() {
   # initialize logging
   $log->flush;
   $cnf->{_}->{logmode} and $log->destremove("qualified") and do {
-    foreach ( split(/[,]+/,$cnf->{_}->{logmode}) ) {
+    foreach ( split(/[,\001]+/,$cnf->{_}->{logmode}) ) {
       if ( /^syslog$/ ) { $log->destadd($_,$cnf->{_}->{syslogfacility}); } 
       elsif ( /^(direct|qualified|cache)$/ ) { $log->destadd($_); } 
       else { die "Invalid log destination $_, exiting.\n"; }
