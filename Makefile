@@ -69,12 +69,12 @@ configure: $(shell find . -name \*\.cin 2>/dev/null | sed -e 's/.cin//' || echo)
 install: configure
 	mkdir -p $(ETC)
 	mkdir -p $(PREFIX)
-	mkdir $(PREFIX)/sbin
-	mkdir $(PREFIX)/share
-	mkdir $(PREFIX)/share/doc
-	mkdir $(PREFIX)/share/doc/$(RELEASE)
-	mkdir $(PREFIX)/share/man
-	mkdir $(PREFIX)/share/man/man8
+	mkdir -p $(PREFIX)/sbin
+	mkdir -p $(PREFIX)/share
+	mkdir -p $(PREFIX)/share/doc
+	mkdir -p $(PREFIX)/share/doc/$(RELEASE)
+	mkdir -p $(PREFIX)/share/man
+	mkdir -p $(PREFIX)/share/man/man8
 	install -m755 fetch-crl              $(PREFIX)/sbin/fetch-crl
 	install -m644 fetch-crl-cron.cron    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.cron
 	install -m644 fetch-crl-cron.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.init
