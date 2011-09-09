@@ -290,8 +290,17 @@ sub process_metafiles(@) {
       $ta->loadAnchor($f) or next;
       $ta->saveLogMode() and $ta->setLogMode();
       $ta->loadState() or next;
-      $ta->retrieve or next;
-      $ta->loadCAfiles() or next;
+
+      # using the HASH in the CA filename templates requires the CRL
+      # is retrieved first to determinte the hash
+      if ( $cnf->{_}->{"catemplate"} =~ /\@HASH\@/ ) {
+        $ta->retrieve or next;
+        $ta->loadCAfiles() or next;
+      } else {
+        $ta->loadCAfiles() or next;
+        $ta->retrieve or next;
+      }
+
       $ta->verifyAndConvertCRLs or next;
     
       my $writer = CRLWriter->new($ta);
