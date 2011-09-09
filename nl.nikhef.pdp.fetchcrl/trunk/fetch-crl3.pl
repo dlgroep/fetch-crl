@@ -289,9 +289,9 @@ sub process_metafiles(@) {
       $cnf->{_}->{"infodir"} and $ta->setInfodir($cnf->{_}->{"infodir"});
       $ta->loadAnchor($f) or next;
       $ta->saveLogMode() and $ta->setLogMode();
-      $ta->loadCAfiles() or next;
       $ta->loadState() or next;
       $ta->retrieve or next;
+      $ta->loadCAfiles() or next;
       $ta->verifyAndConvertCRLs or next;
     
       my $writer = CRLWriter->new($ta);
