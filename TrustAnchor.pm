@@ -265,6 +265,11 @@ sub printAnchorName($) {
   print "" . ($self->{"anchorname"} || "undefined") ."\n";
 }
 
+sub displayAnchorName($) {
+  my $self = shift;
+  return ($self->{"anchorname"} || "undefined");
+}
+
 sub loadCAfiles($) {
   my $self         = shift;
   my $idx = 0;
@@ -276,11 +281,26 @@ sub loadCAfiles($) {
     $::log->err("CA directory",$cadir,"does not exist") and 
     return 0;
 
+  # add @HASH@ support, inducing a file read and fork, only if really needed
+  my $crlhash;
+  if ( $self->{"catemplate"} =~ /\@HASH\@/ ) {
+    $self->{"crl"}[0]{"data"} ne "" or
+      $::log->err("CA name template contains HASH, but no CRL ".
+                  "could be loaded in time for ".$self->displayAnchorName) and
+      return 0;
+    my $probecrl = CRL->new(undef,$self->{"crl"}[0]{"data"});
+    $crlhash = $probecrl->getAttribute("hash");
+    $::log->verb(3,"Inferred CA template HASH ".($crlhash?$crlhash:"failed").
+                   " for ".$self->displayAnchorName);
+  }
+
   @{$self->{"cafile"}} = ();
   do {
     my $cafile;
+
     foreach my $catpl ( split /\001/, $self->{"catemplate"} ) {
       $catpl =~ s/\@R\@/$idx/g;
+      $catpl =~ s/\@HASH\@/$crlhash/g;
       -e $cadir.'/'.$catpl and 
         $cafile = $cadir.'/'.$catpl and last;
     }

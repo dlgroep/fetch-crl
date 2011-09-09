@@ -65,7 +65,7 @@ sub setData($$) {
   # extract other data from the pem blob with openssl
   (my $statusdata,$errormsg) = 
     $openssl->Exec3($pemdata, qw/ crl 
-      -noout -issuer -sha1 -fingerprint -lastupdate -nextupdate/);
+      -noout -issuer -sha1 -fingerprint -lastupdate -nextupdate -hash/);
   defined $statusdata or do {
     ( my $eline = $errormsg ) =~ s/\n.*//sgm;
     $::log->warn("Unable to extract CRL data for",$self->{"name"},$eline);
@@ -79,6 +79,8 @@ sub setData($$) {
     $self->{"lastupdatestr"} = $1;
   $statusdata =~ /(?:^|\n)nextUpdate=([^\n]+)\n/ and 
     $self->{"nextupdatestr"} = $1;
+  $statusdata =~ /(?:^|\n)([0-9a-f]{8})\n/ and 
+    $self->{"hash"} = $1;
 
   $self->{"nextupdatestr"} and 
     $self->{"nextupdate"} = $openssl->gms2t($self->{"nextupdatestr"});
@@ -105,7 +107,7 @@ sub getNextUpdate($) {
 }
 
 sub getAttribute($$) {
-  my $self = shift or die "Invalid invocation of CRL::getNextUpdate\n";
+  my $self = shift or die "Invalid invocation of CRL::getAttribute\n";
   my $key = shift;
   return $self->{$key} or undef;
 }
