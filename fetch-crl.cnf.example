@@ -101,6 +101,14 @@
 #
 # catemplate  = @ALIAS@.pem; @ALIAS@.@R@; @ANCHORNAME@.@R@
 #
+# When @HASH@ (c_hash from default OpenSSL version as based on the retrieved
+# CRL) is used in this template list, a CRL will *always* be retrieved first,
+# even if no corresponding trust anchor is found later. Use of @HASH@ is
+# only recommended in case the name of the crl_url or info file is different
+# from the name of the trust anchor.
+#
+# catemplate  = @ALIAS@.pem; @ALIAS@.@R@; @ANCHORNAME@.@R@; @HASH@.0
+#
 # ---------------------------------------------------------------------------
 # opensslmode is used if the openssl format for output is specified and also
 # OpenSSL version 1.0.0 or higher are used. If so, you can have the CRL data
