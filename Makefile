@@ -25,7 +25,10 @@ tar:    clean configure fetch-crl
 	-chmod -R u+rw /var/tmp/${RELEASE}
 	cd /var/tmp/ ; tar  cvfz ${RELEASE}.tar.gz --exclude=CVS \
                     --exclude='*~' --exclude='#*#' --exclude='20*' ${RELEASE}
+	cd /var/tmp/ ; perl -pe '/^Req/ and s/chkconfig/aaa_base/g' < ${RELEASE}/fetch-crl.spec > ${RELEASE}/fetch-crl.spec.suse ; mv ${RELEASE}/fetch-crl.spec.suse ${RELEASE}/fetch-crl.spec ; tar  cvfz ${RELEASE}.suse.tar.gz --exclude=CVS \
+                    --exclude='*~' --exclude='#*#' --exclude='20*' ${RELEASE}
 	cp /var/tmp/${RELEASE}.tar.gz .
+	cp /var/tmp/${RELEASE}.suse.tar.gz .
 
 #####################################################################
 # Create substitution script
@@ -90,6 +93,7 @@ install: configure
 
 rpm: tar
 	rpmbuild -ta ${RELEASE}.tar.gz
+	rpmbuild -ta -D "dist .suse" ${RELEASE}.suse.tar.gz
 	@if [ -f ${RPMTOPDIR}/SRPMS/${NAME}-${VERSION}-${PATCHLEVEL}.src.rpm ] ; then \
 	  mv ${RPMTOPDIR}/SRPMS/${NAME}*-${VERSION}-${PATCHLEVEL}.src.rpm . ;  \
 	fi
@@ -101,6 +105,7 @@ rpm: tar
 	fi
 	@if [ -f ${RPMTOPDIR}/RPMS/noarch/${NAME}-${VERSION}-${PATCHLEVEL}.noarch.rpm ] ; then \
 	  mv ${RPMTOPDIR}/RPMS/noarch/${NAME}*-${VERSION}-${PATCHLEVEL}.noarch.rpm . ;  \
+	  mv ${RPMTOPDIR}/RPMS/noarch/${NAME}*-${VERSION}-${PATCHLEVEL}.suse.noarch.rpm . ;  \
 	fi
 	@echo DO NOT FORGET TO SIGN THE RPM WITH rpm --resign ${NAME}*-${VERSION}-${PATCHLEVEL}.noarch.rpm
 
