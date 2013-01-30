@@ -176,6 +176,12 @@
 # noerrors
 #
 # ---------------------------------------------------------------------------
+# noquiet ignores any "-q" options on the commandline and honours the 
+# verbosity set here even if -q is specified
+#
+# noquiet
+#
+# ---------------------------------------------------------------------------
 # agingtolerance sets the time in hours before retrieval warnings become
 # errors for a CRL retrieval. If you also suppress warnings, you will 
 # prevent any annoying messages for a trust anchor for up to <hrs> hours.
