@@ -140,7 +140,6 @@ sub init_configuration() {
 
   $configfile ||= ( -e "/etc/fetch-crl.conf" and "/etc/fetch-crl.conf" );
   $configfile ||= ( -e "/etc/fetch-crl.cnf" and "/etc/fetch-crl.cnf" );
-  ($quiet > 0) and $verbosity = -$quiet;
 
   $cnf = ConfigTiny->new();
   $configfile and 
@@ -170,6 +169,14 @@ sub init_configuration() {
   $cnf->{_}->{parallelism}    = $parallelism if $parallelism;
   $cnf->{_}->{randomwait}     = $randomwait if defined $randomwait;
   $cnf->{_}->{nosymlinks}     = $nosymlinks if defined $nosymlinks;
+
+  # deal with interaction of verbosity in logfile and quiet option
+  # since a noquiet config option can cancel it
+  if ( not defined $cnf->{_}->{noquiet} ) {
+    if ( $quiet == 1) { $cnf->{_}->{verbosity} = -1; }
+  } else {
+    if ( $quiet >= 2) { $cnf->{_}->{verbosity} = -1; }
+  }
 
   # key default values
   defined $cnf->{_}->{version}  or $cnf->{_}->{version}    = "3+";
