@@ -11,7 +11,7 @@ Changes in 3.0.10-1
   the default single "-q" option in the cro-job that is shipped with
   the fetch-crl3 init scripts (feature request by Ryan Taylor)
 * Added option "--inet6glue" and "inet6glue" config setting to load 
-  the Net::INET6Glue perl module (if its available) to use IPv6 
+  the Net::INET6Glue perl module (if it is available) to use IPv6 
   connections in LWP to download CRLs
 
 Changes in 3.0.8-1
