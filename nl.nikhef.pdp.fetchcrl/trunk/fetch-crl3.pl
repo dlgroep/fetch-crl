@@ -48,7 +48,7 @@ use vars qw/ $log $cnf /;
 
 # use Net::INET6Glue if so requested (is not a default module)
 if ( $cnf->{_}->{inet6glue} ) {
-  eval { require Net::INET6Glue or die; }; 
+  eval { require Net::INET6Glue::INET_is_INET6 or die; }; 
   $@ and die "Please install Net::INET6Glue before enabling inet6glue config\n";
 }
 
