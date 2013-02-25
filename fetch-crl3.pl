@@ -46,6 +46,12 @@ use vars qw/ $log $cnf /;
 #
 ($cnf,$log) = &init_configuration();
 
+# use Net::INET6Glue if so requested (is not a default module)
+if ( $cnf->{_}->{inet6glue} ) {
+  eval { require Net::INET6Glue or die; }; 
+  $@ and die "Please install Net::INET6Glue before enabling inet6glue config\n";
+}
+
 # verify local installation sanity for loaded modules
 $::log->getverbose > 6 and ! $use_DataDumper and
   $::log->err("Cannot set verbosity higher than 6 without Data::Dumper") and
@@ -114,6 +120,7 @@ sub init_configuration() {
   my $randomwait;
   my $nosymlinks;
   my $cfgdir;
+  my $inet6glue=0;
 
   $log = FCLog->new("qualified");
 
@@ -134,6 +141,7 @@ sub init_configuration() {
     "nosymlinks+" => \$nosymlinks,
     "a|agingtolerance=i" => \$agingtolerance,
     "r|randomwait=i" => \$randomwait,
+    "inet6glue+" => \$inet6glue,
     ) or &help and exit(1);
 
   $help and &help and exit(0);
@@ -169,6 +177,7 @@ sub init_configuration() {
   $cnf->{_}->{parallelism}    = $parallelism if $parallelism;
   $cnf->{_}->{randomwait}     = $randomwait if defined $randomwait;
   $cnf->{_}->{nosymlinks}     = $nosymlinks if defined $nosymlinks;
+  $cnf->{_}->{inet6glue}      = $inet6glue if $inet6glue;
 
   # deal with interaction of verbosity in logfile and quiet option
   # since a noquiet config option can cancel it
@@ -203,6 +212,7 @@ sub init_configuration() {
   $cnf->{_}->{nosymlinks}     ||= 0;
   $cnf->{_}->{verbosity}      ||= 0;
   $cnf->{_}->{debuglevel}     ||= 0;
+  $cnf->{_}->{inet6glue}      ||= 0;
 
   $cnf->{_}->{stateless} and delete $cnf->{_}->{statedir};
 
