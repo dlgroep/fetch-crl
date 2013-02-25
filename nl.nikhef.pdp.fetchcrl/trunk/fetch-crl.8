@@ -11,6 +11,7 @@ fetch-crl \- retrieve certificate revocation lists
 .RB [ \-v [ v .. ] ]
 .RB [ \-q ]
 .RB [ \-h ]
+.RB [ \-\-inet6glue ]
 .RB [ \-l\ infopath ]
 .RB [ \-o\ outputpath ]
 .RB [ \-s\ statepath ]
@@ -174,7 +175,9 @@ processes doing retrievals. At most
 .I n
 downloads will be active at any one time. Multiple CRLs for the 
 same trust anchor are still downloaded sequentially.
-
+.TP
+.B \-\-inet6glue
+Load the Net::INET6Glue module to enable IPv6 support in LWP.
 .SH CONFIGURATION
 See 
 .B http://www.nikhef.nl/grid/gridwiki/index.php/FetchCRL3

@@ -225,6 +225,17 @@
 # stateless
 #
 # ---------------------------------------------------------------------------
+# By default, the perl LWP library does not use IPv6 network sockets. The
+# perl module Net::INET6GLUE::INET6_as_INET can mitigate this behaviour
+# by re-mapping all INET socket calls to INET6 socket calls. If you have
+# the Net::INET6Glue module installed, you may enable this flag in the
+# cofiguration. Note: the Net::INET6Glue module MUST be installed for this
+# flag to work. Installation of this module is options and it does not
+# ship by default with fetch-crl3. You can obtain this module from CPAN.
+#
+# inet6glue
+#
+# ---------------------------------------------------------------------------
 # override version or packager to influence the User-Agent header in http 
 # requests. But please leave them alone
 # version = 3.0
