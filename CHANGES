@@ -5,6 +5,15 @@ The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
 a set of installed trust anchors, based on crl_url files or IGTF-style info
 files. It will install these for use with OpenSSL, NSS or third-party tools.
 
+Changes in 3.0.10-1
+----------------------
+* Added a "noquiet" option in the configuration file that will override
+  the default single "-q" option in the cro-job that is shipped with
+  the fetch-crl3 init scripts (feature request by Ryan Taylor)
+* Added option "--inet6glue" and "inet6glue" config setting to load 
+  the Net::INET6Glue perl module (if its available) to use IPv6 
+  connections in LWP to download CRLs
+
 Changes in 3.0.8-1
 ----------------------
 * Trust anchor name inferrence based on retrieved-CRL added as option (at cost 
