@@ -176,8 +176,9 @@
 # noerrors
 #
 # ---------------------------------------------------------------------------
-# noquiet ignores any "-q" options on the commandline and honours the 
-# verbosity set here even if -q is specified
+# noquiet ignores a single "-q" option on the commandline and honours the 
+# verbosity set here even if -q is specified. To counter this setting, give
+# at least two (2) "-q" arguments
 #
 # noquiet
 #
