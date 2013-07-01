@@ -180,10 +180,15 @@ same trust anchor are still downloaded sequentially.
 Load the Net::INET6Glue module to enable IPv6 support in LWP.
 .SH CONFIGURATION
 See 
-.B http://www.nikhef.nl/grid/gridwiki/index.php/FetchCRL3
+.B http://wiki.nikhef.nl/grid/FetchCRL3
 or the included example file for a description of the configuration 
 options. The default location of the configuration file is 
 .IR /etc/fetch-crl.conf .
+Supplementary configuration is read from all files located in
+.IR /etc/fetch-crl.d/ ,
+or the directory designated by the 
+.I cfgdir
+directive, whose collated contents are added to the existing configuration data.
 
 .SH NOTES
 Defaults can be set in the fetch-crl system configuration file
@@ -191,7 +196,7 @@ Defaults can be set in the fetch-crl system configuration file
 
 .SH "SEE ALSO"
 openssl(1), 
-http://www.nikhef.nl/grid/gridwiki/index.php/FetchCRL3
+http://wiki.nikhef.nl/grid/FetchCRL3
 
 .SH "DIAGNOSTICS"
 Exit status is normally 0;
