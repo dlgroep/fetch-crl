@@ -2,7 +2,6 @@
 #
 use strict;
 use Getopt::Long qw(:config no_ignore_case bundling);
-use POSIX;
 
 my $versionid = "20130702.01";
 
