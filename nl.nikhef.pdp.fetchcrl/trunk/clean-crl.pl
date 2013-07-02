@@ -16,7 +16,7 @@ sub help() {
   (my $name = $0) =~ s/.*\///;
   print <<EOHELP;
 The $name utility will eradicate [0-9a-f]{8}.r\\d+ files from
-the directory given to the "-l" option if no matching [0-9a-f]{8}.\d+
+the directory given to the "-l" option if no matching [0-9a-f]{8}.\\d+
 file can be found in the same, which in most cases will wipe stale 
 historic CRLs from an X509_CERT_DIR like directory.
 Use at your own risk. It may be wiping files that you would have
