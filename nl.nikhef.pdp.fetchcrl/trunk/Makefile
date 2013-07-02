@@ -79,6 +79,7 @@ install: configure
 	mkdir -p $(PREFIX)/share/man
 	mkdir -p $(PREFIX)/share/man/man8
 	install -m755 fetch-crl              $(PREFIX)/sbin/fetch-crl
+	install -m755 clean-crl              $(PREFIX)/sbin/clean-crl
 	install -m644 fetch-crl-cron.cron    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.cron
 	install -m644 fetch-crl-cron.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.init
 	install -m644 fetch-crl-boot.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-boot.init
@@ -110,4 +111,4 @@ rpm: tar
 	@echo DO NOT FORGET TO SIGN THE RPM WITH rpm --resign ${NAME}*-${VERSION}-${PATCHLEVEL}.noarch.rpm
 
 clean:
-	-rm -rf *.tar.gz *.rpm fetch-crl config.sh fetch-crl.spec 
+	-rm -rf *.tar.gz *.rpm fetch-crl clean-crl config.sh fetch-crl.spec 
