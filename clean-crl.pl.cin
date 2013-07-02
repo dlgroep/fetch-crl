@@ -3,7 +3,7 @@
 use strict;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
-my $versionid = "20130702.01";
+my $sccsid = '$Id$';
 
 my $targetdir;
 my $show_help;
@@ -45,7 +45,7 @@ EOHELP
 
 sub showversion() {
   (my $name = $0) =~ s/.*\///;
-  print "$name version $versionid\n";
+  print "$name version @VERSION@\n";
   return 1;
 }
 
