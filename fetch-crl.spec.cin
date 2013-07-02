@@ -69,6 +69,7 @@ fi
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/fetch-crl
+%{_sbindir}/clean-crl
 %{_initddir}/%{name}-cron
 %{_initddir}/%{name}-boot
 %{_localstatedir}/cache/fetch-crl
