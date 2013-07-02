@@ -252,7 +252,6 @@ sub init_configuration() {
 sub showversion() {
   (my $name = $0) =~ s/.*\///;
   print "$name version @VERSION@\n";
-  print 'Revision information: $Id$'."\n";
   return 1;
 }
 
