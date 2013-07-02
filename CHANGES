@@ -9,6 +9,8 @@ Changes in 3.0.11-1
 ----------------------
 * Added reference to /etc/fetch-crl.d/ to the man page, used shortened URL
   to full documentation in man page
+* Added version information to help output and added -V option
+* Added a dangerous clean-crl script to remove stale .r* files (beware!)
 
 Changes in 3.0.10-1
 ----------------------
