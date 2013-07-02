@@ -453,12 +453,12 @@ sub retrieveHTTP($$) {
     };
     alarm 0; # make sure the alarm stops ticking, regardless of the eval
 
-    if ( $@ ) {
+    if ( $@ ) { # died, alarm hit: server bad, so try next URL
       $::log->verb(2,"HEAD error $url:", $@);
       return undef;
     }
 
-    # try get if head fails anyway
+    # try using cached data if it is fresh
     if ( ( ! $@ ) and
           $response->is_success and 
          $response->header("Last-Modified") ) {
@@ -483,7 +483,7 @@ sub retrieveHTTP($$) {
     }
   }
 
-  # try get if head fails anyway
+  # try get if head fails, there was no cache, cache disabled or invalidated
 
   my $response;
   eval {

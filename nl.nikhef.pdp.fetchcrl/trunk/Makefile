@@ -12,7 +12,7 @@ RPMTOPDIR=$(shell rpm --eval '%_topdir')
 PREFIX=/usr
 ETC=/etc
 CACHE=/var/cache
-FILES=fetch-crl fetch-crl.8 fetch-crl-cron.cron fetch-crl-cron.init fetch-crl-boot.init fetch-crl.cnf fetch-crl.cnf.example NOTICE LICENSE README CHANGES fetch-crl.spec Makefile
+FILES=fetch-crl fetch-crl.8 fetch-crl-cron.cron fetch-crl-cron.init fetch-crl-boot.init fetch-crl.cnf fetch-crl.cnf.example NOTICE LICENSE README CHANGES fetch-crl.spec Makefile clean-crl
 # source files that will constitute fetch-crl as a single file, with the primary perl script first
 SOURCEFILES=fetch-crl3.pl CRL.pm CRLWriter.pm ConfigTiny.pm FCLog.pm OSSL.pm TrustAnchor.pm base64.pm
 
