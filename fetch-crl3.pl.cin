@@ -25,7 +25,7 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 use POSIX;
 eval { require LWP or die; }; $@ and die "Please install libwww-perl (LWP)\n";
 
-my $sccsid = '$Id$';
+my $sccsid = '@(#)$Id$';
 
 # import modules that are needed but still external 
 # (the installed version may have these packages embedded in-line)

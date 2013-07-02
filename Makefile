@@ -111,4 +111,4 @@ rpm: tar
 	@echo DO NOT FORGET TO SIGN THE RPM WITH rpm --resign ${NAME}*-${VERSION}-${PATCHLEVEL}.noarch.rpm
 
 clean:
-	-rm -rf *.tar.gz *.rpm fetch-crl clean-crl config.sh fetch-crl.spec 
+	-rm -rf *.tar.gz *.rpm fetch-crl fetch-crl.pl clean-crl config.sh fetch-crl.spec 
