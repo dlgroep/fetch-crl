@@ -4,6 +4,8 @@ use strict;
 use Getopt::Long qw(:config no_ignore_case bundling);
 use POSIX;
 
+my $versionid = "20130702.01";
+
 my $targetdir;
 my $show_help;
 my $show_version;
@@ -13,11 +15,10 @@ my $dryrun;
 sub help() {
   (my $name = $0) =~ s/.*\///;
   print <<EOHELP;
-The $name utility will eradicate [0-9a-f]{8}.r\\d files from
-the directory given to the "-l" option if no matching [0-9a-f]{8}.info
-or [0-9a-f]{8}.crl_url file can be found in the same, which in most 
-cases will wipe stale historic CRLs from the X509 CERTDIR directory.
-
+The $name utility will eradicate [0-9a-f]{8}.r\\d+ files from
+the directory given to the "-l" option if no matching [0-9a-f]{8}.\d+
+file can be found in the same, which in most cases will wipe stale 
+historic CRLs from an X509_CERT_DIR like directory.
 Use at your own risk. It may be wiping files that you would have
 liked to keep, or it may kill your pet.
 
@@ -45,7 +46,7 @@ EOHELP
 
 sub showversion() {
   (my $name = $0) =~ s/.*\///;
-  print "$name version 20130702.01\n";
+  print "$name version $versionid\n";
   return 1;
 }
 
