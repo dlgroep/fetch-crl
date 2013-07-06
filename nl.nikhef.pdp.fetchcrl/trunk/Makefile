@@ -12,7 +12,7 @@ RPMTOPDIR=$(shell rpm --eval '%_topdir')
 PREFIX=/usr
 ETC=/etc
 CACHE=/var/cache
-FILES=fetch-crl fetch-crl.8 fetch-crl-cron.cron fetch-crl-cron.init fetch-crl-boot.init fetch-crl.cnf fetch-crl.cnf.example NOTICE LICENSE README CHANGES fetch-crl.spec Makefile clean-crl
+FILES=fetch-crl fetch-crl.8 fetch-crl-cron.cron fetch-crl-cron.init fetch-crl-boot.init fetch-crl.cnf fetch-crl.cnf.example NOTICE LICENSE README CHANGES fetch-crl.spec Makefile clean-crl clean-crl.8
 # source files that will constitute fetch-crl as a single file, with the primary perl script first
 SOURCEFILES=fetch-crl3.pl CRL.pm CRLWriter.pm ConfigTiny.pm FCLog.pm OSSL.pm TrustAnchor.pm base64.pm
 
@@ -84,6 +84,7 @@ install: configure
 	install -m644 fetch-crl-cron.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.init
 	install -m644 fetch-crl-boot.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-boot.init
 	install -m644 fetch-crl.8            $(PREFIX)/share/man/man8/fetch-crl.8
+	install -m644 clean-crl.8            $(PREFIX)/share/man/man8/clean-crl.8
 	install -m644 fetch-crl.cnf          $(ETC)/fetch-crl.conf
 	install -m644 fetch-crl.cnf.example  $(PREFIX)/share/doc/$(RELEASE)/fetch-crl.conf.example
 	install -m644 README                 $(PREFIX)/share/doc/$(RELEASE)/README
