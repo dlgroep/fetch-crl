@@ -1,0 +1,79 @@
+.\" "@(#)$Id$"
+.\"
+.\" 
+.TH CLEAN-CRL 8 local "Trust Anchor Utilities"
+.SH NAME
+clean-crl \- remove orphaned CRL like files from a certificate directory
+.SH SYNOPSIS
+.ll +8
+.B clean-crl
+.RB [ \-l\ crlpath ]
+.RB [ \-v ]
+.RB [ \-V ]
+.RB [ \-n ]
+.RB [ \-h ]
+.ll -8
+.SH DESCRIPTION
+The 
+.I clean-crl
+utility will remove CRL like files named
+.IR hash .r n
+from the directory specified with the 
+.B \-l
+option if there is no corresponding 
+.RI . n
+file in the same.
+In effect, if the directory is solely used to hold CA certificates
+in the common OpenSSL format, it will thus remove CRL files for
+which the corresponding CA does  not or no longer exists in the
+directory.
+
+.SH OPTIONS
+.TP
+.B \-h --help
+Show help text.
+.TP
+.B \-l --cadir metadata-directory
+The script will search this directory for files with the
+suffix 
+.RI .r i .
+There is no default - a common choice is /etc/pki/tls/certs, 
+/etc/openldap/cacerts, or /etc/grid-security/certificates.
+
+.TP
+.B \-V --version 
+Display version number (same as corresponding fetch-crl)
+
+.TP
+.B \-v --verbose
+Verbose mode
+
+.TP
+.B \-n --dryrun
+Do not actually remove any files (useful primarily with -v)
+
+.SH CONFIGURATION
+None.
+
+.SH NOTES
+This tool does not check the contents of the files removed, and will
+blindly unlink any file which even removely looks like an OpenSSL CRL
+file. Use with extreme caution.
+
+.SH "SEE ALSO"
+fetch-crl(8), openssl(1), 
+http://wiki.nikhef.nl/grid/FetchCRL3
+
+.SH "DIAGNOSTICS"
+Exit status is normally 0;
+if an error occurs, exit status is 1 and diagnostics will be written
+to standard error.
+
+.SH LICENSE
+Licensed under the Apache License, Version 2.0 (the "License"); 
+
+.B http://www.apache.org/licenses/LICENSE-2.0
+
+.SH BUGS
+Does not check the contents of the files removed. 
+
