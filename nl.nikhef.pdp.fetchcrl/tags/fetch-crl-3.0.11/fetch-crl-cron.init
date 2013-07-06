@@ -1,0 +1,62 @@
+#!/bin/sh
+#
+# fetch-crl-cron  This shell script enables periodic CRL retrieval via cron
+#
+# chkconfig:	- 65 01
+#
+# description:  Run the certificate revocation lists update periodically via cron
+# processname:  fetch-crl-cron
+# config: /etc/fetch-crl.conf
+#
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+lockfile=/var/lock/subsys/fetch-crl-cron
+
+RETVAL=0
+
+start() {
+	action $"Enabling periodic fetch-crl: " touch "$lockfile" 
+	RETVAL=$?
+}
+
+stop() {
+	action $"Disabling periodic fetch-crl: " rm -f "$lockfile" 
+	RETVAL=$?
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop) 
+	stop
+	;;
+  restart|force-reload)
+	$0 stop
+	$0 start
+	;;
+  reload)
+	;;
+  condrestart)
+	[ -f "$lockfile" ] && {
+          $0 stop
+          $0 start
+        }
+	;;
+  status)
+	if [ -f $lockfile ]; then
+		echo $"Periodic fetch-crl is enabled."
+		RETVAL=0
+	else
+		echo $"Periodic fetch-crl is disabled."
+		RETVAL=3
+	fi
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+	exit 1
+esac
+
+exit $RETVAL
