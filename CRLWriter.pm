@@ -123,6 +123,9 @@ sub updatefile($$%) {
   };
 
   if ( open FH,'>',$file ) {
+    if ($content !~ /\n$/sm) {
+      $content="$content\n";
+    }
     print FH $content or
       $::log->err("Write to $file: $!") and return undef;
     close FH or 
