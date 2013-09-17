@@ -1,0 +1,11 @@
+# Cron job running by default every 6 hours, at 45 minutes +/- 3 minutes
+# The lock file can be enabled or disabled via a
+# service fetch-crl-cron start
+# chkconfig fetch-crl-cron on
+
+# Note the lock file not existing is success (and over-all success is needed
+# in order to prevent error messages from cron. "-q" makes it really
+# quiet, but beware that the "-q" overrides any verbosity settings
+
+42 */6 * * *	root	[ ! -f /var/lock/subsys/fetch-crl-cron ] || ( [ -f /etc/sysconfig/fetch-crl ] && . /etc/sysconfig/fetch-crl ; /usr/sbin/fetch-crl -q -r 360 )
+
