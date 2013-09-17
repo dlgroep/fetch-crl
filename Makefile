@@ -94,7 +94,7 @@ install: configure
 	mkdir -p $(CACHE)/fetch-crl && chmod 0700 $(CACHE)/fetch-crl
 
 rpm: tar
-	rpmbuild -ta ${RELEASE}.tar.gz
+	rpmbuild -ta --eval "%undefine dist" ${RELEASE}.tar.gz
 	rpmbuild -ta -D "dist .suse" ${RELEASE}.suse.tar.gz
 	@if [ -f ${RPMTOPDIR}/SRPMS/${NAME}-${VERSION}-${PATCHLEVEL}.src.rpm ] ; then \
 	  mv ${RPMTOPDIR}/SRPMS/${NAME}*-${VERSION}-${PATCHLEVEL}.src.rpm . ;  \
