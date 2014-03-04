@@ -176,6 +176,14 @@
 # noerrors
 #
 # ---------------------------------------------------------------------------
+# rcmode determines if the return code of fetch-crl will be influenced by
+# CRL retrieval errors. If rcmode==1 (default), any reported errors will
+# cause the return exit status to be "1". Note that setting "noerrors" will
+# suppress retrieval errors entirely!
+#
+# rcmode = 1
+#
+# ---------------------------------------------------------------------------
 # noquiet ignores a single "-q" option on the commandline and honours the 
 # verbosity set here even if -q is specified. To counter this setting, give
 # at least two (2) "-q" arguments

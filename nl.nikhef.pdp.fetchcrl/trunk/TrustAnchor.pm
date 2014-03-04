@@ -614,13 +614,13 @@ sub retrieve($) {
                          time )/3600).
                      " left of ".$self->{"agingtolerance"}."h, retry later.");
          } else {
-        $::log->err("CRL retrieval for",
+        $::log->retr_err("CRL retrieval for",
                      $self->{"alias"},($i?"[$i] ":"")."failed.",
                      $self->{"agingtolerance"}."h grace expired.",
                      "CRL not updated");
          }
       } else { # direct errors, no tolerance anymore
-        $::log->err("CRL retrieval for",
+        $::log->retr_err("CRL retrieval for",
                      $self->{"alias"},($i?"[$i] ":"")."failed,",
                      "CRL not updated");
       }
@@ -721,7 +721,7 @@ sub verifyAndConvertCRLs($) {
     }
 
     $#verifyMessages >= 0 and do {
-      $::log->err("CRL verification failed for",$self->{"anchorname"}."/$i",
+      $::log->retr_err("CRL verification failed for",$self->{"anchorname"}."/$i",
                   "(".$self->{"alias"}.")");
       foreach my $m ( @verifyMessages ) {
         $::log->verb(0,$self->{"anchorname"}."/$i:",$m);
