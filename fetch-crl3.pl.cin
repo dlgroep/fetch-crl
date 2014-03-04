@@ -69,9 +69,10 @@ $cnf->{_}->{path} and $ENV{"PATH"} = $cnf->{_}->{path} and
   $::log->verb(5,"Set PATH to",$ENV{"PATH"});
 
 # set rcmode if present in config
-$cnf->{_}->{rcmode} and do {
+defined $cnf->{_}->{rcmode} and do {
   $::log->err("Invalid return code mode set (must be 0 or 1)")
     if ( $cnf->{_}->{rcmode} != 0 && $cnf->{_}->{rcmode} != 1 );
+  $::log->verb(2,"Exit status mode is set to ".$cnf->{_}->{rcmode});
   $::log->setrcmode($cnf->{_}->{rcmode});
 };
   
