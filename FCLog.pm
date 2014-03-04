@@ -30,6 +30,7 @@ sub new {
   $obref->{"messagecache"} = ();
   $obref->{"warnings"} = 1;
   $obref->{"errors"} = 1;
+  $obref->{"rcmode"} = 1;
   $obref->{"warncount"} = 0;
   $obref->{"errorcount"} = 0;
   $obref->{"syslogfacility"} = "daemon";
@@ -125,6 +126,18 @@ sub seterrors {
   return $oldlevel;
 }
 
+sub getrcmode {
+  my ($self) = @_;
+  return $self->{"rcmode"};
+}
+
+sub setrcmode {
+  my ($self,$level) = @_;
+  my $oldlevel = $self->{"rcmode"};
+  $self->{"rcmode"} = $level;
+  return $oldlevel;
+}
+
 sub verb($$$) {
   my $self = shift;
   my $level = shift;
@@ -157,6 +170,16 @@ sub err($@) {
   my $message = "@_";
   return 1 unless ( $self->{"errors"} );
   $self->output("ERROR",$message);
+  $self->{"errorcount"}++;
+  return 1;
+}
+
+sub retr_err($@) {
+  my $self = shift;
+  my $message = "@_";
+  return 1 unless ( $self->{"errors"} );
+  $self->output("ERROR",$message);
+  return 1 unless ( $self->{"rcmode"} );
   $self->{"errorcount"}++;
   return 1;
 }

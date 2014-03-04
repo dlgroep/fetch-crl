@@ -24,9 +24,13 @@ lockfile=/var/lock/subsys/fetch-crl-boot
 RETVAL=0
 
 start() {
-	action $"Running fetch-crl on boot: " /usr/sbin/fetch-crl -q
-	RETVAL=$?
-	[ "$RETVAL" = 0 ] && touch $lockfile
+	if [ ! -f $lockfile ]; then
+	 action $"Running fetch-crl on boot: " /usr/sbin/fetch-crl -q
+	 RETVAL=$?
+	 [ "$RETVAL" = 0 ] && touch $lockfile
+	else
+	 RETVAL=0
+	fi
 }
 
 stop() {

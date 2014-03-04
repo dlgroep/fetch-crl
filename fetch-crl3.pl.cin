@@ -67,6 +67,13 @@ $use_DataDumper and $::log->verb(7,Data::Dumper::Dumper($cnf));
 # set safe path if so requested
 $cnf->{_}->{path} and $ENV{"PATH"} = $cnf->{_}->{path} and
   $::log->verb(5,"Set PATH to",$ENV{"PATH"});
+
+# set rcmode if present in config
+$cnf->{_}->{rcmode} and do {
+  $::log->err("Invalid return code mode set (must be 0 or 1)")
+    if ( $cnf->{_}->{rcmode} != 0 && $cnf->{_}->{rcmode} != 1 );
+  $::log->setrcmode($cnf->{_}->{rcmode});
+};
   
 # wait up to randomwait seconds to spread download load
 $cnf->{_}->{randomwait} and do {
