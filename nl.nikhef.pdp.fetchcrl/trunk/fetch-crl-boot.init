@@ -25,9 +25,9 @@ RETVAL=0
 
 start() {
 	if [ ! -f $lockfile ]; then
-	 action $"Running fetch-crl on boot: " /usr/sbin/fetch-crl -q
+	 action $"Running fetch-crl on boot: " /usr/sbin/fetch-crl -q $FETCHCRL_OPTIONS $FETCHCRL_BOOT_OPTIONS
 	 RETVAL=$?
-	 [ "$RETVAL" = 0 ] && touch $lockfile
+	 [ "$RETVAL" = 0 -o "$RETVAL" = 2 ] && touch $lockfile
 	else
 	 RETVAL=0
 	fi

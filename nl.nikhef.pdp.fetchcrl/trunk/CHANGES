@@ -11,6 +11,11 @@ Changes in 3.0.13-1
 * Add rcmode config option (added differentiated reporting and success-on-
   solely-retrieval-errors)
 * Add --define key=val command line argument to augment configuration data
+* Setting FETCHCRL_OPTIONS in /etc/sysconfig/fetch-crl will add these
+  options to the commandline of fetch-crl on start from cron or at boot time
+  Setting FETCHCRL_BOOT_OPTIONS adds them to the boot init script only
+  (e.g. FETCHCRLBOOTOPTIONS="--define rcmode=differentiated")
+  and FETCHCRL_CRON_OPTIONS does the same only for the cron job script
 
 Changes in 3.0.12-1
 ----------------------
