@@ -30,9 +30,10 @@ sub new {
   $obref->{"messagecache"} = ();
   $obref->{"warnings"} = 1;
   $obref->{"errors"} = 1;
-  $obref->{"rcmode"} = 1;
+  $obref->{"rcmode"} = "normal";
   $obref->{"warncount"} = 0;
   $obref->{"errorcount"} = 0;
+  $obref->{"retrerrorcount"} = 0;
   $obref->{"syslogfacility"} = "daemon";
 
   while ( my $mode = shift ) {
@@ -133,6 +134,12 @@ sub getrcmode {
 
 sub setrcmode {
   my ($self,$level) = @_;
+
+  if ( $level !~ /^(normal|differentiated|noretrievalerrors)$/ ) {
+    $self->err("Attempt to set rcmode to invalid value of $level");
+    return undef;
+  }
+
   my $oldlevel = $self->{"rcmode"};
   $self->{"rcmode"} = $level;
   return $oldlevel;
@@ -179,8 +186,7 @@ sub retr_err($@) {
   my $message = "@_";
   return 1 unless ( $self->{"errors"} );
   $self->output("ERROR",$message);
-  return 1 unless ( $self->{"rcmode"} );
-  $self->{"errorcount"}++;
+  $self->{"retrerrorcount"}++;
   return 1;
 }
 
@@ -224,7 +230,7 @@ sub flush($) {
   }
   $self->{"messagecache"} = ();
 
-  $self->{"errorcount"} and $self->{"errors"} and return 0;
+  ($self->{"errorcount"} + $self->{"retrerrorcount"}) and $self->{"errors"} and return 0;
   $self->{"warningcount"} and $self->{"warnings"} and return 1;
   return 1;
 }
@@ -233,6 +239,7 @@ sub cleanse($) {
   my $self = shift;
   $self->{"messagecache"} = ();
   $self->{"errorcount"} = 0;
+  $self->{"retrerrorcount"} = 0;
   $self->{"warningcount"} = 0;
   $self->{"logmode"} = {};
   return 1;
@@ -242,7 +249,18 @@ sub cleanse($) {
 sub exitstatus($) {
   my $self = shift;
 
-  $self->{"errorcount"} and $self->{"errors"} and return 1;
+  if ( $self->{"rcmode"} eq "normal" ) {
+    $self->{"errorcount"} and $self->{"errors"} and return 1;
+    $self->{"retrerrorcount"} and $self->{"errors"} and return 1;
+  } elsif ( $self->{"rcmode"} eq "differentiated" ) {
+    $self->{"errorcount"} and $self->{"errors"} and return 1;
+    $self->{"retrerrorcount"} and $self->{"errors"} and return 2;
+  } elsif ( $self->{"rcmode"} eq "noretrievalerrors" ) {
+    $self->{"errorcount"} and $self->{"errors"} and return 1;
+  } else {
+    return 1;
+  }
+
   return 0;
 }
 

@@ -20,6 +20,8 @@ fetch-crl \- retrieve certificate revocation lists
 .RB [ \-r\ randomwait ]
 .RB [ \-p\ parallelism ]
 .RB [ \-\-formats\ openssl | pem | der | nss ]\ ..
+.RB [ \-\-define\ key = value ]\ ..
+.RB [ \-\-cfgdir\ dirname ]
 .ll -8
 .SH DESCRIPTION
 The 
@@ -178,6 +180,13 @@ same trust anchor are still downloaded sequentially.
 .TP
 .B \-\-inet6glue
 Load the Net::INET6Glue module to enable IPv6 support in LWP.
+.TP
+.BI \-\-define\  key = value
+Add definitions to the configuration at runtime. The key=value pair is
+appended to the main section of the configuration, unless a colon is used
+in the key: then the part before the colon is the config file section name,
+and the part thereafter the key inside that section. 
+To merely set a valueless option, set to to the null-string "".
 .SH CONFIGURATION
 See 
 .B http://wiki.nikhef.nl/grid/FetchCRL3

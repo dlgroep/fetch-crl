@@ -171,17 +171,22 @@
 #
 # ---------------------------------------------------------------------------
 # noerrors suppresses the pritning and logging or any and all errors (but
-# not warnings or verbose messages)
+# not warnings or verbose messages). It also suppresses retrieval errors.
 #
 # noerrors
 #
 # ---------------------------------------------------------------------------
 # rcmode determines if the return code of fetch-crl will be influenced by
-# CRL retrieval errors. If rcmode==1 (default), any reported errors will
-# cause the return exit status to be "1". Note that setting "noerrors" will
-# suppress retrieval errors entirely!
+# CRL retrieval errors. If rcmode is "normal" (default), any reported errors 
+# will cause the return exit status to be "1". 
+#  normal             - both retrieval and other errors set exit code 1
+#  differentiated     - retrieval errors result in exit code 2, presence
+#                       of any other reported errors result in exit 1
+#  noretrievalerrors  - retrieval errors only results in exit code 0, presence
+#                       of any other reported errors result in exit 1
+# Note that setting "noerrors" will suppress retrieval errors entirely!
 #
-# rcmode = 1
+# rcmode = normal
 #
 # ---------------------------------------------------------------------------
 # noquiet ignores a single "-q" option on the commandline and honours the 
