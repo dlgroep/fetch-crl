@@ -8,8 +8,9 @@ files. It will install these for use with OpenSSL, NSS or third-party tools.
 Changes in 3.0.13-1
 ----------------------
 * Supplied system init script for boot phase will not re-run inadvertently
-* Add rcmode config option (set rcmode = 0 to still log errors but exit 
-  successfully)
+* Add rcmode config option (added differentiated reporting and success-on-
+  solely-retrieval-errors)
+* Add --define key=val command line argument to augment configuration data
 
 Changes in 3.0.12-1
 ----------------------
