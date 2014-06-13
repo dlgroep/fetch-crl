@@ -100,7 +100,7 @@ $::cnf->{_}->{"infodir"} and do {
 };
 
 @metafiles or
-  $log->err("No trust anchors to process") and exit($log->exitstatus);
+  $log->warn("No trust anchors to process") and exit($log->exitstatus);
 
 if ( $::cnf->{_}->{parallelism} ) {
   &parallel_metafiles($::cnf->{_}->{parallelism}, @metafiles);
