@@ -2,7 +2,7 @@
 # @(#)$Id: config.mk,v 1.14 2009/09/21 20:22:32 pmacvsdg Exp $
 #
 VERSION=3.0.14
-RELEASE=1
+RELEASE=2
 
 MANSECT=8
 
