@@ -109,7 +109,7 @@ sub getNextUpdate($) {
 sub getAttribute($$) {
   my $self = shift or die "Invalid invocation of CRL::getAttribute\n";
   my $key = shift;
-  return $self->{$key} or undef;
+  return $self->{$key} || undef;
 }
 
 sub getPEMdata($) {
