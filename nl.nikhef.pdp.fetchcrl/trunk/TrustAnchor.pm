@@ -567,9 +567,12 @@ sub retrieve($) {
     # be used for all (like  Last-Modified, and cache control data)
 
     # if we have a cached piece of fresh data, return that one
+    # and make sure the nextupdate in the CRL itself outlives claimed freshness
     if ( !$self->{"nocache"} and
           ($self->{"crl"}[$i]{"state"}{"freshuntil"} || 0) > time and
           ($self->{"crl"}[$i]{"state"}{"nextupdate"} || time) >= time and
+          ($self->{"crl"}[$i]{"state"}{"nextupdate"} || 0) >=
+              ($self->{"crl"}[$i]{"state"}{"freshuntil"} || 0) and
           $self->{"crl"}[$i]{"state"}{"b64data"} ) {
       $::log->verb(3,"Using cached content for",$self->{"alias"},"index",$i);
       $::log->verb(4,"Content dated",
@@ -733,6 +736,43 @@ sub verifyAndConvertCRLs($) {
     foreach my $key ( qw/ lastupdate nextupdate sha1fp issuer / ) {
       $self->{"crl"}[$i]{"state"}{$key} = $crl->getAttribute($key) || "";
     }
+
+
+    # issue a low-level warning in case the cache control headers from
+    # the CA (or its CDN) are bugus, i.e. the CRL wille expire before the
+    # cache does. Don't log at warning, since the site cannot fix this
+    if ( defined ($self->{"crl"}[$i]{"state"}{"freshuntil"}) and
+         ( $self->{"crl"}[$i]{"state"}{"freshuntil"} >
+           ( $self->{"crl"}[$i]{"state"}{"nextupdate"} + 
+             $::cnf->{_}->{expirestolerance} )
+         )
+      ) {
+      $::log->verb(1,"Cache control headers for CA ".$self->{"alias"}." at ".
+        "URL ".$self->{"crl"}[$i]{"state"}{"sourceurl"}." have apparent ".
+        "freshness ".sprintf("%.1f",($self->{"crl"}[$i]{"state"}{"freshuntil"}-
+                             $self->{"crl"}[$i]{"state"}{"nextupdate"})/3600).
+        "hrs beyond CRL expiration nextUpdate. Reset freshness from ".
+        gmtime($self->{"crl"}[$i]{"state"}{"freshuntil"})." UTC to ".
+        $::cnf->{_}->{expirestolerance}." second before nextUpdate at ".
+        gmtime($self->{"crl"}[$i]{"state"}{"nextupdate"})." UTC.");
+      $self->{"crl"}[$i]{"state"}{"freshuntil"} = 
+        $self->{"crl"}[$i]{"state"}{"nextupdate"} - 
+        $::cnf->{_}->{expirestolerance};
+    }
+
+    # limit maximum freshness period to compensate for CAs that overdo it
+    if ( defined ($self->{"crl"}[$i]{"state"}{"freshuntil"}) and
+         $self->{"crl"}[$i]{"state"}{"freshuntil"} > 
+           (time + $::cnf->{_}->{maxcachetime}) ) {
+      $self->{"crl"}[$i]{"state"}{"freshuntil"} = 
+        time+$::cnf->{_}->{maxcachetime};
+      $::log->verb(1,"Cache state freshness expiry for CA ".$self->{"alias"}.
+                   " reset to at most ".
+                   sprintf("%.1f",$::cnf->{_}->{maxcachetime}/3600.).
+                   "hrs beyond current time (".
+                   gmtime($self->{"crl"}[$i]{"state"}{"freshuntil"})." UTC)");
+    }
+
   }
   return 1;
 }
