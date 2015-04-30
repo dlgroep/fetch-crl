@@ -225,6 +225,8 @@ sub init_configuration() {
   defined $cnf->{_}->{formats}  or $cnf->{_}->{formats}    = "openssl";
   defined $cnf->{_}->{opensslmode} or $cnf->{_}->{opensslmode} = "dual";
   defined $cnf->{_}->{httptimeout} or $cnf->{_}->{httptimeout} = 120;
+  defined $cnf->{_}->{expirestolerance} or $cnf->{_}->{expirestolerance} = (7*60*60); # at least 7 hrs should nextUpdate be beyond the cache FreshUntil
+  defined $cnf->{_}->{maxcachetime} or $cnf->{_}->{maxcachetime} = (4*24*60*60); # arbitrarily set it at 4 days
   defined $cnf->{_}->{nametemplate_der} or 
     $cnf->{_}->{nametemplate_der} = "\@ANCHORNAME\@.\@R\@.crl";
   defined $cnf->{_}->{nametemplate_pem} or 
