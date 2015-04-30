@@ -1,0 +1,229 @@
+.\" "@(#)$Id: fetch-crl.8,v 1.6 2009/09/21 20:22:32 pmacvsdg Exp $"
+.\"
+.\" 
+.TH FETCH-CRL 8 local "Trust Anchor Utilities"
+.SH NAME
+fetch-crl \- retrieve certificate revocation lists
+.SH SYNOPSIS
+.ll +8
+.B fetch-crl
+.RB [ \-c\ config ]
+.RB [ \-v [ v .. ] ]
+.RB [ \-q ]
+.RB [ \-h ]
+.RB [ \-\-inet6glue ]
+.RB [ \-l\ infopath ]
+.RB [ \-o\ outputpath ]
+.RB [ \-s\ statepath ]
+.RB [ \-a\ agingtolerance ]
+.RB [ \-T\ httptimeout ]
+.RB [ \-r\ randomwait ]
+.RB [ \-p\ parallelism ]
+.RB [ \-\-formats\ openssl | pem | der | nss ]\ ..
+.RB [ \-\-define\ key = value ]\ ..
+.RB [ \-\-cfgdir\ dirname ]
+.ll -8
+.SH DESCRIPTION
+The 
+.I fetch-crl
+utility will retrieve certificate revocation lists (CRLs) for a set of 
+installed trust anchors, based on crl_url files or IGTF-style info
+files. It will install these for use with OpenSSL, NSS or third-party tools.
+
+It works based on a list of trust anchors, for each of which one or more 
+CRLs should be installed in a CRL store. And for each of these CRLs, one or
+more URLs can be specified from which the specific CRL can be retrieved.
+There are several supported formats for CRL stores:
+.IP openssl
+has a directory in which 
+.I hash.
+.I i
+files are stored, one CRL per file, and all CRLs for the trust anchors 
+whose subject distinguished name hashes to
+.I hash
+are read and evaluated for each certificate issues by the CAs whose
+subject name hash matches
+.I hash
+
+OpenSSL in version 1 changes its subject name hashing algorithm, though, so
+that for one trust anchor 
+.B two
+hashes could be used, depending on the specific OpenSSL version at hand. If
+OpenSSL version 1 or higher is used by 
+.I fetch-crl
+and the default mode is used, each CRL is written out twice, once for each
+possible hash value. This mode in controlled by the
+.I opensslmode
+= {
+.I dual
+|
+.I single
+} configuration option in the configuration file.
+.IP pem
+writes out the CRL in PEM (RFC 1421) format.
+.IP der
+writes out the CRL in binary under distinguished encoding rules
+.IP nss
+will use the crlutil from the Mozilla NSS tools to add or replace a CRL in
+the NSS cert8.db database.
+
+.P
+Each CRLs can be retrieved from one of several URLs. These URLs are listed
+by default in the trust anchor meta-data: the 
+.I .info
+file or the
+.I .crl_url
+file, as shipped with the trust anchor. In the crl_url file, there is one
+URL per line; in the .info file, the
+.I crl_url 
+attribute is a semi-colon separated list of URLs. These URLs are then
+tried in order to retrieve a fresh CRL. Once data has been successfully
+retrieved, this data is used as the CRL if it passes verification,
+signature checking and expiration checks. Http, https, ftp and file URLs are
+supported. If data for a CRL has been downloaded but this data fails
+any of the subsequent checks (signature validation, freshness), the CRL
+data is discarded and NO further URLs are tried for this CRL!
+
+URLs can be pre-pended or post-pended to the default list via the
+configuration file. This can be used to prefer a local mirror repository
+over any URLs shipped by the trust anchor provider, without the need to
+modify the trust anchor metadata. By post-pending a URL, a 'last-resort'
+download location can be added in case the CA provided URLs cannot be
+used. The pre- and post-pended URLS are subject to token expansion of the
+tokens
+.IR @ALIAS@ ", " @ANCHORNAME@ ", and " @R@ ,
+where 
+.I R
+is the sequence number of the CRL on a per-trust anchor basis.
+
+Retrieved CRLs may be PEM (RFC1421) or DER encoded. They are automatically
+converted as needed by fetch-crl, using the OpenSSL command-line tool.
+
+Retrieving a CRL without having an accompanying CA root certificate
+in an OpenSSL-accessible form (like
+.I @ALIAS@.0
+or
+.I @ANCHORNAME@.@R@
+will result in a verification failures. The CA lookup directory 
+and patterns can be configured via the configuration file
+
+.SH TOKEN EXPANSION
+In paths and name templates, tokens are expanded to allow a 
+single pattern to be used for all trust anchors. The 
+.IR nametemplate_* , 
+.IR catemplate ,
+.IR prepend_url ,
+and
+.I postpend_url
+configuration settings are subject to token expansion.
+
+The following tokens are recognised
+.IP @ALIAS@
+The alias name of the trust anchor as defined in the 
+.I info
+file. If there is no info file and the meta-data is retrieved from
+.I crl_url
+files, then the alias is set to the basename (excluding the .crl_url
+suffix) of the filename of the trust anchor.
+.IP @ANCHORNAME@
+The file name of the trust anchor, without any .info or .url_crl
+suffix.
+.IP @R@
+The CRL sequence number, counting from 0. Note that most trust anchors
+only have a single CRL, with sequence number "0".
+
+.SH OPTIONS
+.TP
+.B \-h --help
+Show help text.
+.TP
+.B \-l --infodir metadata-directory
+The script will search this directory for files with the
+suffix '.info' or '.crl_url'. 
+Note: the CRL files to download must be in either PEM or DER format.
+
+.TP
+.B \-o --out  outputDirectory
+Directory where to put the downloaded and processed CRLs.
+The directory to be used as argument for this option
+is typically /etc/grid-security/certificates
+Default: infodir (meta-data directory)
+
+.TP
+.B \-a --agingtolerance  hours
+The maximum age of the locally downloaded CRL before download 
+failures trigger actual error messages. This error message
+suppression mechanism only works if the CRL has been
+downloaded at least once and either the crl_url files are 
+named after the hash of the CRL issuer name, or a state directory
+is used to preserve state across invocations.
+
+Default: 24 hour aging tolerance
+.TP
+.B \-q --quiet
+Quiet mode (do not print information messages)
+
+.TP
+.B \-r --randomwait s
+Wait up to 
+.I s
+seconds before starting the retrieval process(es).
+
+.TP
+.B \-p --parallelism n
+Do the retrieval for several trust anchors in parallel, with up to
+.I n
+processes doing retrievals. At most 
+.I n
+downloads will be active at any one time. Multiple CRLs for the 
+same trust anchor are still downloaded sequentially.
+.TP
+.B \-\-inet6glue
+Load the Net::INET6Glue module to enable IPv6 support in LWP.
+.TP
+.BI \-\-define\  key = value
+Add definitions to the configuration at runtime. The key=value pair is
+appended to the main section of the configuration, unless a colon is used
+in the key: then the part before the colon is the config file section name,
+and the part thereafter the key inside that section. 
+To merely set a valueless option, set to to the null-string "".
+.SH CONFIGURATION
+See 
+.B http://wiki.nikhef.nl/grid/FetchCRL3
+or the included example file for a description of the configuration 
+options. The default location of the configuration file is 
+.IR /etc/fetch-crl.conf .
+Supplementary configuration is read from all files located in
+.IR /etc/fetch-crl.d/ ,
+or the directory designated by the 
+.I cfgdir
+directive, whose collated contents are added to the existing configuration data.
+
+.SH NOTES
+Defaults can be set in the fetch-crl system configuration file
+/etc/fetch-crl.conf.
+
+.SH "SEE ALSO"
+openssl(1), 
+http://wiki.nikhef.nl/grid/FetchCRL3
+
+.SH "DIAGNOSTICS"
+Exit status is normally 0;
+if an error occurs, exit status is 1 and diagnostics will be written
+to standard error.
+
+.SH LICENSE
+Licensed under the Apache License, Version 2.0 (the "License"); 
+
+.B http://www.apache.org/licenses/LICENSE-2.0
+
+.SH BUGS
+Although fetch-crl3 will install multiple CRLs in the CRL stores 
+(called '.r0', '.r1', or labelled appropriately in an NSS store), if the 
+number of CRLs decreases the left-overs are not automatically removed. So 
+if the number of CRLs for a particular CA does down from 
+.IR n " to " n-1 ,
+the file 
+.RI '.r n '
+must be removed manually. 
+
