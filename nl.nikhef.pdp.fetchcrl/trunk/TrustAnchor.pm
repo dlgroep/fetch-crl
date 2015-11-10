@@ -434,10 +434,12 @@ sub retrieveHTTP($$) {
     }
   }
   # set request cache control if specified as valid in config
-  if ( defined $cnf->{_}->{cache_control_request} ) {
-    if ( $cnf->{_}->{cache_control_request} =~ /^\d+$/ ) {
+  if ( defined $::cnf->{_}->{cache_control_request} ) {
+    $::log->verb(5,"Setting request cache-control to ".
+                   $::cnf->{_}->{cache_control_request});
+    if ( $::cnf->{_}->{cache_control_request} =~ /^\d+$/ ) {
       $ua->default_header('Cache-control' => 
-                          "max-age=".$cnf->{_}->{cache_control_request} );
+                          "max-age=".$::cnf->{_}->{cache_control_request} );
     } else {
       die "Request cache control is invalid (not a number)\n";
     }
