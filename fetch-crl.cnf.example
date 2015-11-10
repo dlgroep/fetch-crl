@@ -205,6 +205,17 @@
 # agingtolerance = 24
 #
 # ---------------------------------------------------------------------------
+# cache_control_request sends a cache-control max-age hint towards the
+# server in the HTTP request, that suggests to intermediate caches and
+# reverse proxies to cache CRL replies no longer than the specified time
+# This control is a hint towards caching servers and CDNs and cannot be
+# enforced. It does NOT affect the cache local to fetch-crl
+# Default is unset, and no Cache-control header will be sent unless this 
+# config option is specified
+#
+# cache_control_request = 3600
+#
+# ---------------------------------------------------------------------------
 # prepend_url URLs are tried first before using any URLs form the crl_url
 # file or the .info crl_url (crl_url.0) fields
 #
