@@ -5,6 +5,11 @@ The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
 a set of installed trust anchors, based on crl_url files or IGTF-style info
 files. It will install these for use with OpenSSL, NSS or third-party tools.
 
+Changes in 3.0.17-1
+----------------------
+* Add optional cache-control max-age headers in all requests to hint a 
+  maximum caching time to intermediate servers (bugzilla #26)
+
 Changes in 3.0.16-1
 ----------------------
 * Added cache state freshness constraints (default maxcachetime set to 96hrs)
