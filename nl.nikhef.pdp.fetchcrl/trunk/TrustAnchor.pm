@@ -433,7 +433,15 @@ sub retrieveHTTP($$) {
       $ua->proxy("http", $self->{"http_proxy"});
     }
   }
-
+  # set request cache control if specified as valid in config
+  if ( defined $cnf->{_}->{cache_control_request} ) {
+    if ( $cnf->{_}->{cache_control_request} =~ /^\d+$/ ) {
+      $ua->default_header('Cache-control' => 
+                          "max-age=".$cnf->{_}->{cache_control_request} );
+    } else {
+      die "Request cache control is invalid (not a number)\n";
+    }
+  }
 
   # see with a HEAD request if we can get by with old data
   # but to assess that we need Last-Modified from the previous request
