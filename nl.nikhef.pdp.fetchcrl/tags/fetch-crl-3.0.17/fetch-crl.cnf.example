@@ -1,0 +1,328 @@
+#
+# EXAMPLE configuration file for Fetch-crl3
+# @(#)$Id$
+#
+# configuration file fetch-crl3
+# use SEMICOLON (;) or \001 (^A) as list separators in values
+#
+# ---------------------------------------------------------------------------
+# cfgdir sets the directory where subordinate configuration files are
+# found. These files are read in addition to the main config file.
+# The default directory is /etc/fetch-crl.d/ and is used by default, so
+# to suppress this behaviour set this to the empty value ""
+#
+# cfgdir = /etc/fetch-crl.d
+#
+# ---------------------------------------------------------------------------
+# infoset set the location where the meta-data files (.info or .crl_url)
+# are help by default. All trust anchors listed there are processes, so
+# to suppress this behaviour set this to the empty value ""
+#
+# infodir = /etc/grid-security/certificates
+#
+# ---------------------------------------------------------------------------
+# cadir sets the location where the trust anchors themselves are found, as
+# PEM files, to be used in the CRL verification by openssl. They are usually
+# names after the trust anchor proper name ("alias.0"), or after the filename
+# of the trust anchor, the basename of the meta-data file name ("hash.0").
+# It defaults to infodir
+#
+# cadir = /etc/grid-security/certificates
+#
+# ---------------------------------------------------------------------------
+# output sets the location where the retrieved CRLs are written by default.
+# It can be overridden on a per-output-format basis by setting the
+# "output_<fmt>" options. It should point to a directory (even for the
+# NSS output format. It defaults to infodir
+#
+# output = /etc/grid-security/certificates
+#
+# ---------------------------------------------------------------------------
+# statedir points to the directory where per-CRL state files are kept. These
+# state files record the retrieval time, last-retrieved (modification) time, 
+# best-before date and the (cached) content of the CRL. For the purposes of 
+# the CRL state, all CRL URLs for a particular trust anchor index are 
+# considered equal.
+# If it is unset, no state is preserved, but the last-retrieved time is 
+# guessed from the modification time. If statedir does not exist, or is
+# not writable, it is not used but silently ignored. Writeability is 
+# determined by perl's "-w" test.
+# It defaults to /var/cache/fetch-crl
+# 
+# statedir = /var/cache/fetch-crl
+#
+# ---------------------------------------------------------------------------
+# formats lists one or more ways to write out the CRL to the output 
+# directories. It can be one or more of "openssl", "der", "pem", or "nss"
+# in a comma-separated list. 
+# * the "openssl" format writes out "hash.rX" files, with <hash> being the
+#   first 4 bytes of the digest of the subject DN, and "X" a sequence number 
+#   of the CRL starting at 0 (".r0"). When used with OpenSSL version 1.0.0 
+#   or above, it can write out the CRL with two possible hash algorithms at
+#   the same time: the 'old' MD5 of the binary subject DN representation, or
+#   the 'new' SHA1 based digest of the canonical representation. Whether
+#   one or two hashes are written is determined by the "opensslmode" option.
+# * "pem" writes out the CRL in PEM (RFC1421) format, to the file named
+#   after the "nametemplate_pem" setting (default: @ANCHORNAME@.@R@.crl.pem)
+#   in the output or output_pem directory
+# * "der" does the same in DER binary format, to a file names 
+#   after the "nametemplate_der" setting (default: @ANCHORNAME@.@R@.crl)
+#   in the output or output_der directory
+# * "nss" adds (or replaces) the named CRL in the NSS database in
+#   <output>/<nssdbprefix>cert8.db, using the Mozilla crlutil tool
+#
+# formats = openssl
+#
+# ---------------------------------------------------------------------------
+# specialised output directories
+#
+# output_pem = /etc/pki/tls/certs
+# output_der = /var/tmp
+# output_nss = /etc/pki/nssdb
+#
+# ---------------------------------------------------------------------------
+# name templates are used to construct the file name of a CRL for installation
+# based on the meta-data of the CA. It uses token replacement to construct
+# a specific and unique filename. The tokens recognised are the same as those
+# of the pre- and postpend URLs:
+#   @ANCHORNAME@  base name of the trust anchor meta-data file name
+#   @ALIAS@       alias name of the trust anchor from the info file (defaults
+#                 to the @ANCHORNAME@)
+#   @R@           the sequence number of the CRL for this trust anchor
+#
+# nametemplate_der = @ANCHORNAME@.@R@.crl
+# nametemplate_pem = @ANCHORNAME@.@R@.crl.pem
+#
+# ---------------------------------------------------------------------------
+# catemplate has a (list of) potential names of the certificate of the
+# trust anchor -- it is used to find the CA data for verifying the 
+# retrieved CRLs. Even if you only use NSS databases, you need a directory
+# with PEM formatted certificates of the issuing CAs. 
+#
+# catemplate  = @ALIAS@.pem; @ALIAS@.@R@; @ANCHORNAME@.@R@
+#
+# When @HASH@ (c_hash from default OpenSSL version as based on the retrieved
+# CRL) is used in this template list, a CRL will *always* be retrieved first,
+# even if no corresponding trust anchor is found later. Use of @HASH@ is
+# only recommended in case the name of the crl_url or info file is different
+# from the name of the trust anchor.
+#
+# catemplate  = @ALIAS@.pem; @ALIAS@.@R@; @ANCHORNAME@.@R@; @HASH@.0
+#
+# ---------------------------------------------------------------------------
+# opensslmode is used if the openssl format for output is specified and also
+# OpenSSL version 1.0.0 or higher are used. If so, you can have the CRL data
+# be written out twice, once with the 'old' and once with the 'new' hash style
+# Default is dual mode, so if OpenSSL 1.x is present, by default TWO files
+# are written
+#
+# opensslmode = dual
+# opensslmode = single
+#
+# ---------------------------------------------------------------------------
+# nonssverify disables the checking of imported CRLs into an NSS database. 
+# so that you can create a database withonly CRLs, and no CAs. It passes the
+# "-B" option to the crlutil tool
+#
+# nonssverify
+#
+# ---------------------------------------------------------------------------
+# use up to <parallelism> thread in parallel to retrieve and install CRLs
+# This feature is likely NOT COMPATIBLE with the use of NSS databases for
+# CRLs, due to thread contention issues
+#
+# parallelism = 5
+#
+# ---------------------------------------------------------------------------
+# wait up to <randomwait> seconds before doing anything at all 
+# useful for randoming the start time and download from cron across the world
+#
+# randomwait = 0
+#
+# ---------------------------------------------------------------------------
+# logmode defined how the log and error messages are written out:
+#  direct    - print them immediately, only the message
+#  qualified - print immediately, but prexif it with the message type
+#              "WARN", "ERROR", "VERBOSE(x)", or "DEBUG(x)"
+#  cache     - save messages and dump them all at once at the end
+#  syslog    - write the message to system with a decent severity level
+#              using facility <syslogfacility> (default: daemon)
+#
+# logmode = qualified
+#
+# ---------------------------------------------------------------------------
+# wait at most <httptimeout> seconds for the retrieval of a data blob
+# from a remote URL (http, https, or ftp). The timeout covers the whole
+# retrieval process, incliding DNS resolution. Default is 120 seconds.
+#
+# httptimeout = 30
+#
+# ---------------------------------------------------------------------------
+# httpproxy sets the url for the HTTP proxy to use (in perl LWP style). Or
+# use ENV to pick up the settings from the environment
+#
+# http_proxy = http://localhost:8001/
+#
+# ---------------------------------------------------------------------------
+# nowarnings suppresses the pritning and logging or any and all warnings (but
+# not errors or verbose messages)
+#
+# nowarnings
+#
+# ---------------------------------------------------------------------------
+# noerrors suppresses the pritning and logging or any and all errors (but
+# not warnings or verbose messages). It also suppresses retrieval errors.
+#
+# noerrors
+#
+# ---------------------------------------------------------------------------
+# rcmode determines if the return code of fetch-crl will be influenced by
+# CRL retrieval errors. If rcmode is "normal" (default), any reported errors 
+# will cause the return exit status to be "1". 
+#  normal             - both retrieval and other errors set exit code 1
+#  differentiated     - retrieval errors result in exit code 2, presence
+#                       of any other reported errors result in exit 1
+#  noretrievalerrors  - retrieval errors only results in exit code 0, presence
+#                       of any other reported errors result in exit 1
+# Note that setting "noerrors" will suppress retrieval errors entirely!
+#
+# rcmode = normal
+#
+# ---------------------------------------------------------------------------
+# noquiet ignores a single "-q" option on the commandline and honours the 
+# verbosity set here even if -q is specified. To counter this setting, give
+# at least two (2) "-q" arguments
+#
+# noquiet
+#
+# ---------------------------------------------------------------------------
+# agingtolerance sets the time in hours before retrieval warnings become
+# errors for a CRL retrieval. If you also suppress warnings, you will 
+# prevent any annoying messages for a trust anchor for up to <hrs> hours.
+# The IGTF currently recommends an aging tolerance of 24 hours, to allow
+# for network disruptions and connectivity problems.
+#
+# agingtolerance = 24
+#
+# ---------------------------------------------------------------------------
+# cache_control_request sends a cache-control max-age hint towards the
+# server in the HTTP request, that suggests to intermediate caches and
+# reverse proxies to cache CRL replies no longer than the specified time
+# This control is a hint towards caching servers and CDNs and cannot be
+# enforced. It does NOT affect the cache local to fetch-crl
+# Default is unset, and no Cache-control header will be sent unless this 
+# config option is specified
+#
+# cache_control_request = 3600
+#
+# ---------------------------------------------------------------------------
+# prepend_url URLs are tried first before using any URLs form the crl_url
+# file or the .info crl_url (crl_url.0) fields
+#
+# prepend_url = file:///share/grid-security/certificates/@ALIAS@.r@R@
+#
+# ---------------------------------------------------------------------------
+# postpend_url URLs are tried last, only if all URLs form the crl_url file 
+# or the .info crl_url (crl_url.0) fields have already failed or timed out
+#
+# postpend_url = http://dist.eugridpma.info/certificates/@ANCHORNAME@.r@R@
+#
+# ---------------------------------------------------------------------------
+# path to openssl version to use
+# openssl = /usr/bin/openssl
+#
+# ---------------------------------------------------------------------------
+# path to use to find utilities like OpenSSL or crlutil. Default leaves it 
+# unmodified
+#
+# path = /bin:/usr/bin:/usr/ucb
+#
+# ---------------------------------------------------------------------------
+# settings "backups" will trigger the generation of backup files (~ files) 
+# when writing CRLs to an output destination. 
+#
+# backups
+#
+# ---------------------------------------------------------------------------
+# stateless supresses any use of the state directory, even if it exists and
+# is writable
+#
+# stateless
+#
+# ---------------------------------------------------------------------------
+# By default, the perl LWP library does not use IPv6 network sockets. The
+# perl module Net::INET6GLUE::INET6_as_INET can mitigate this behaviour
+# by re-mapping all INET socket calls to INET6 socket calls. If you have
+# the Net::INET6Glue module installed, you may enable this flag in the
+# cofiguration. Note: the Net::INET6Glue module MUST be installed for this
+# flag to work. Installation of this module is options and it does not
+# ship by default with fetch-crl3. You can obtain this module from CPAN.
+#
+# inet6glue
+#
+# ---------------------------------------------------------------------------
+# override version or packager to influence the User-Agent header in http 
+# requests. But please leave them alone
+# version = 3.0
+# packager = EUGridPMA
+
+# ===========================================================================
+# PER TRUST ANCHOR OVERRIDES
+# ===========================================================================
+#
+# many settings can be overrules in a per-trust anchor section of the
+# configuration file. For each trust anchor, only a SINGLE override
+# section will be used. If a section names after the @ALIAS@ exists, 
+# it will take precedence over any section named after @ANCHORNAME@.
+#
+# To have a section work with either ".info" or ".crl_url" files, name it
+# after the @ANCHORNAME@, since that one will be the same for both.
+# Example: the DutchGrid CA "NIKHEF" can be either [NIKHEF] or [16da7552]
+# (the latter is the commonly used file name), but using [16da7552] will
+# result in the section being recognised in both cases
+#
+#
+[16da7552]
+
+# ---------------------------------------------------------------------------
+# agingtolerance for this trust anchor specifically. Use it if the retrieval
+# for this CA is unreliable.
+#
+# agingtolerance = 12
+#
+# ---------------------------------------------------------------------------
+# replace the list of CRL URLs for this CA and this CRL sequence number
+# by a completely new set.  E.g. from a different place, or a local
+# cache, or ...
+#
+# crl_url.0 = http://ca.dutchgrid.nl/medium/cacrl.pem; file:///etc/grid-security/certificates/16da7552.r0
+#
+# ---------------------------------------------------------------------------
+# To never hear of this CA again, suppress both errors and warnings:
+#noerrors
+#nowarnings
+#
+# ---------------------------------------------------------------------------
+# Do not process symlinked meta-data, preventing triple downloads with
+# the new-format IGTF distribution before release 1.37 (1.33 up to and
+# including 1.36 also symlinked the .info file to the hash names)
+#nosymlinks
+#
+# ---------------------------------------------------------------------------
+# You can also (un) set the following on a per-trust anchor basis:
+#
+# (no)prepend_url (no)postpend_url (no)http_proxy (no)statedir  -- 
+#         either remove a global setting, or put in a new setting with value
+#
+# (no)warnings (no)noerrors (no)nocache  --
+#         override a global setting (no value possible)
+#
+# agingtolerance httptimeout nametemplate_der nametemplate_pem
+# cadir catemplate 
+#         set these to a local value (but they cannot be unset)
+#
+#
+# Share and enjoy -- and remember that up to 7 verbosity levels are
+# significant :-) "-vvvvvvvv" is a useful option ...
+#
+#
