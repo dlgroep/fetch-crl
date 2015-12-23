@@ -9,6 +9,15 @@
 # config: /etc/fetch-crl.conf
 #
 
+### BEGIN INIT INFO
+# Provides: fetch-crl-cron
+# Required-Start: $remote_fs
+# Required-Stop:  $remote_fs
+# Default-Start:  3 5
+# Default-Stop:   0 2 1 6
+# Description:    Run the certificate revocation lists update periodically via cron
+### END INIT INFO
+
 # source function library
 . /etc/rc.d/init.d/functions
 
