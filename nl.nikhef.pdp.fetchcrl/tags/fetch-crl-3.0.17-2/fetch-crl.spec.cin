@@ -1,0 +1,84 @@
+%if %{?rhel}%{!?rhel:0} <= 5
+  %global _initddir  %{_initrddir}
+%endif
+
+Name: fetch-crl
+Version: @VERSION@
+Release: @RELEASE@%{?dist}
+Summary: Certificate Revocation List retrieval tool
+
+Group: Applications/System
+License: Apache 2.0
+URL: https://dist.eugridpma.info/distribution/util/fetch-crl3
+Source: http://www.eugridpma.org/distribution/util/fetch-crl3/%{name}-%{version}.tar.gz
+Vendor: Nikhef
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
+
+Requires: openssl, perl, perl(LWP), perl(POSIX), perl(File::Temp), perl(Sys::Syslog), perl(strict) perl(vars)
+Autoreq: 0 
+
+Prefix: /usr
+
+Requires(post): chkconfig
+Requires(preun): chkconfig
+
+%description
+The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
+a set of installed trust anchors. Using meta-data with URLs and CAs it will
+provision CRLs for use by OpenSSL or NSS in their native format (.rX files
+or cert8.db files). It supports parallel downloads, and has failover and
+caching capabilities to deal with network interruptions.
+This associated cron entries can ensure that CRLs are periodically retrieved 
+from the web sites of the respective Certification Authorities (CAs) or other 
+repositories.
+CA meta-data should be provided in crl_url files or in IGTF-style info files.
+
+%prep
+
+%setup
+
+%build
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install PREFIX=$RPM_BUILD_ROOT%{_usr} ETC=$RPM_BUILD_ROOT%{_sysconfdir} CACHE=$RPM_BUILD_ROOT%{_localstatedir}/cache
+mkdir -p $RPM_BUILD_ROOT/%{_initddir}
+install -p -m 755 $RPM_BUILD_ROOT%{_usr}/share/doc/%{name}-%{version}/%{name}-cron.init $RPM_BUILD_ROOT/%{_initddir}/%{name}-cron
+install -p -m 755 $RPM_BUILD_ROOT%{_usr}/share/doc/%{name}-%{version}/%{name}-boot.init $RPM_BUILD_ROOT/%{_initddir}/%{name}-boot
+mkdir $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d
+install -p -m 644 $RPM_BUILD_ROOT%{_usr}/share/doc/%{name}-%{version}/%{name}-cron.cron $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/%{name}.cron
+
+%post
+# This adds the proper /etc/rc*.d links for the script
+/sbin/chkconfig --add %{name}-cron
+/sbin/chkconfig --add %{name}-boot
+
+%preun
+if [ $1 = 0 ] ; then
+    /sbin/service %{name}-cron stop >/dev/null 2>&1
+    /sbin/service %{name}-boot stop  >/dev/null 2>&1
+    /sbin/chkconfig --del %{name}-cron
+    /sbin/chkconfig --del %{name}-boot
+fi
+
+
+%files
+%defattr(-,root,root,-)
+%{_sbindir}/fetch-crl
+%{_sbindir}/clean-crl
+%{_initddir}/%{name}-cron
+%{_initddir}/%{name}-boot
+%{_localstatedir}/cache/fetch-crl
+%doc /usr/share/man/man8
+%doc %{_defaultdocdir}/%{name}-%{version}
+%config(noreplace) %{_sysconfdir}/fetch-crl.conf
+%config(noreplace) %{_sysconfdir}/cron.d/fetch-crl.cron
+
+
+%changelog
+* Fri Jun 11 2010 David Groep <davidg@nikhef.nl>
+Initial build of completely rewritten version 3.0 
