@@ -8,7 +8,16 @@
 # processname:  fetch-crl
 # config: /etc/fetch-crl.conf
 # config: /etc/sysconfig/fetch-crl
-#
+
+### BEGIN INIT INFO
+# Provides: fetch-crl
+# Required-Start: $remote_fs
+# Required-Stop:  $remote_fs
+# Default-Start:  3 5
+# Default-Stop:   0 2 1 6
+# Description:    Run of fetch-crl, a crl updater, on boot up
+### END INIT INFO
+
 
 # fetch-crl-boot must run after the start of xinetd and afs, since the URLs
 # may point to files on an AFS file system or to xinetd-based service URLs

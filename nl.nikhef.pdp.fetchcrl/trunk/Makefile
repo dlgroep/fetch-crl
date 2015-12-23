@@ -25,7 +25,7 @@ tar:    clean configure fetch-crl
 	-chmod -R u+rw /var/tmp/${RELEASE}
 	cd /var/tmp/ ; tar  cvfz ${RELEASE}.tar.gz --exclude=CVS \
                     --exclude='*~' --exclude='#*#' --exclude='20*' ${RELEASE}
-	cd /var/tmp/ ; perl -pe '/^Req/ and s/chkconfig/aaa_base/g' < ${RELEASE}/fetch-crl.spec > ${RELEASE}/fetch-crl.spec.suse ; mv ${RELEASE}/fetch-crl.spec.suse ${RELEASE}/fetch-crl.spec ; tar  cvfz ${RELEASE}.suse.tar.gz --exclude=CVS \
+	cd /var/tmp/ ; perl -pe '/^Req/ and s/chkconfig/aaa_base/g; s/_defaultdocdir\}/_usr\}\/share\/doc/;' < ${RELEASE}/fetch-crl.spec > ${RELEASE}/fetch-crl.spec.suse ; mv ${RELEASE}/fetch-crl.spec.suse ${RELEASE}/fetch-crl.spec ; tar  cvfz ${RELEASE}.suse.tar.gz --exclude=CVS \
                     --exclude='*~' --exclude='#*#' --exclude='20*' ${RELEASE}
 	cp /var/tmp/${RELEASE}.tar.gz .
 	cp /var/tmp/${RELEASE}.suse.tar.gz .
