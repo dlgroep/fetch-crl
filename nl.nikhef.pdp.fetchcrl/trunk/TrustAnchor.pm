@@ -112,6 +112,7 @@ sub loadAnchor($$) {
     @{$self->{"crlurls"}} = ();
     open CRLURL,"$path$basename$suffix" or
       $::log->err("Error reading crl_url $path$basename$suffix: $!") and return 0;
+    $self->{"filename"} = "$path$basename$suffix";
     my $urllist;
     while (<CRLURL>) {
       /^\s*([^#\n]+).*$/ and my $url = $1 or next;
@@ -134,6 +135,7 @@ sub loadAnchor($$) {
     $info->read( $path . $basename . $suffix ) or 
       $::log->err("Error reading info $path$basename$suffix", $info->errstr) 
         and return 0;
+    $self->{"filename"} = "$path$basename$suffix";
 
     $info->{_}->{"crl_url"} and $info->{_}->{"crl_url.0"} and 
       $::log->err("Invalid info for $basename: crl_url and .0 duplicate") and 

@@ -261,6 +261,17 @@
 # inet6glue
 #
 # ---------------------------------------------------------------------------
+# To run a script after the completion of every fetch-crl run, set this
+# path to point to an executable. The named program will be invoked 
+# with the following arguments
+#   "v1" "global" <infodir-path> <cadir-path> <output-path>
+# - return code of the program will influence return status of fetch-crl
+# - this must be a program path - no arguments are allowed here. Use wrapping
+#   in a script if you must pass your own arguments as well
+#
+# postexec = <path>
+#
+# ---------------------------------------------------------------------------
 # override version or packager to influence the User-Agent header in http 
 # requests. But please leave them alone
 # version = 3.0
@@ -307,6 +318,19 @@
 # the new-format IGTF distribution before release 1.37 (1.33 up to and
 # including 1.36 also symlinked the .info file to the hash names)
 #nosymlinks
+#
+# ---------------------------------------------------------------------------
+# To run a script after the successful completion of each CRL retrieval set
+# path to point to an executable. The named program will be invoked 
+# with the following arguments
+#   "v1" "ta" <ta-alias> <infofilename> <cadir-path> <output-path>
+# - return code of the program will influence return status of fetch-crl
+# - program may run IN PARALLEL, so should be written to permit concurrent
+#   execution
+# - this must be a program path - no arguments are allowed here. Use wrapping
+#   in a script if you must pass your own arguments as well
+#
+# postexec = <path>
 #
 # ---------------------------------------------------------------------------
 # You can also (un) set the following on a per-trust anchor basis:
