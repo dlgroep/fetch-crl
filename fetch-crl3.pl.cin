@@ -108,6 +108,20 @@ if ( $::cnf->{_}->{parallelism} ) {
   &process_metafiles( @metafiles );
 }
 
+# run any post-processing
+if ( $::cnf->{_}->{"postexec"} ) {
+  my @args = ( $::cnf->{_}->{"postexec"}, 
+    "v1", "global",
+    $::cnf->{_}->{"infodir"}, $::cnf->{_}->{"cadir"}, $::cnf->{_}->{"output"} );
+  $::log->verb(2,"Executing global postscript @args");
+  my $postrc = system(@args);
+  if ( $postrc == -1 ) {
+    $::log->err("Cannot execute global postexec program: $!");
+  } elsif ( $postrc > 0 ) {
+    $::log->err("Global postexec program returned error code ".($? >> 8));
+  }
+}
+
 $log->flush;
 exit($log->exitstatus);
 
@@ -358,6 +372,19 @@ sub process_metafiles(@) {
       my $writer = CRLWriter->new($ta);
       $writer->writeall() or next;
       $ta->saveState() or next;
+
+      if ( $::cnf->{$ta->{"alias"}}->{"postexec"} ) {
+        my @args = ( $::cnf->{$ta->{"alias"}}->{"postexec"}, 
+          "v1", "ta",
+          $ta->{"alias"}, $ta->{"filename"}, $::cnf->{_}->{"cadir"}, $::cnf->{_}->{"output"} );
+        $::log->verb(2,"Executing postscript for ".$ta->{"alias"}.": @args");
+        my $postrc = system(@args);
+        if ( $postrc == -1 ) {
+          $::log->err("Cannot execute postexec program for".$ta->{"alias"}.": $!");
+        } elsif ( $postrc > 0 ) {
+          $::log->err("postexec program for ".$ta->{"alias"}." returned error code ".($? >> 8));
+        }
+      }
       $ta->restoreLogMode();
   }
 
