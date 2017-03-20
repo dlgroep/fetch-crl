@@ -123,9 +123,6 @@ sub updatefile($$%) {
   };
 
   if ( open FH,'>',$file ) {
-    if ($content !~ /\n$/sm) {
-      $content="$content\n";
-    }
     print FH $content or
       $::log->err("Write to $file: $!") and return undef;
     close FH or 
@@ -161,6 +158,11 @@ sub writePEM($$$$) {
 
   my %flags = ();
   $::cnf->{_}->{"backups"} and $flags{"BACKUP"} = 1;
+
+  if ($data !~ /\n$/sm) {
+    $::log->verb(5,"Appending newline to short PEM file",$filename);
+    $data="$data\n";
+  }
 
   $::log->verb(3,"Writing PEM file",$filename);
   &updatefile($filename,$data,%flags) or return 0;
