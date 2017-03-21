@@ -1,0 +1,110 @@
+==============================================================================
+fetch-crl - the Certificate Revocation List retrieval tool
+==============================================================================
+
+The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
+a set of installed trust anchors, based on crl_url files or IGTF-style info
+files. It will install these for use with OpenSSL, NSS or third-party tools.
+
+For more extensive information about fetch-crl3, please look on the web at:
+
+  http://www.nikhef.nl/grid/fetchcrl3
+
+USAGE
+-----
+Usage: fetch-crl [-c|--config configfile] [-l|--infodir path]
+  [--cadir path] [-s|--statedir path] [-o|--output path] [--format @formats]
+  [-T|--httptimeout seconds] [-p|--parallelism n]
+  [-a|--agingtolerance hours] [-r|--randomwait seconds]
+  [-v|--verbose] [-h|--help] [-q|--quiet] [-d|--debug level]
+
+Options:
+ -c | --config path
+        Read configuration data from path, default: /etc/fetch-crl.conf
+ -l | --infodir path
+        Location of the trust anchor meta-data files (crl_url or info),
+        default: /etc/grid-security/certificates
+ --cadir path
+        Location of the trust anchors (default to infodir)
+ -s | --statedir path
+        Location of the historic state data (for caching and delayed-warning)
+ -T | --httptimeout sec
+        Maximum time in seconds to wait for retrieval or a single URL
+ -o | --output path
+        Location of the CRLs written (global default, defaults to infodir
+ --format @formats
+        Format(s) in which the CRLs will be written (openssl, pem, der, nss)
+ -v | --verbose
+        Become more talkative
+ -q | --quiet
+        Become really quiet (overrides verbosity)
+ -p | --parallelism n
+        Run up to n parallel trust anchor retrieval processes
+ -a | --agingtolerance hours
+        Be quiet for up to hours hours before raising an error. Until
+        the tolerance has passed, only warnings are raised
+ -r | --randomwait seconds
+        Introduce a random delay of up to seconds seconds before starting
+        any retrieval processes
+ -h | --help 
+        This help text
+
+CONFIGURATION
+-------------
+The fetch-crl3 tool has built-in defaults that are suitable for 'grid' setups,
+where trust anchors are installed in /etc/grid-security/certificates. It will
+usually do what you want, if you use OpenSSL-like applications.
+
+If you want, you can tune fetch-crl in a myriad of ways, by setting any of the
+flags or options in the configuration file. This configuration file is looked
+for in "/etc/fetch-crl.conf" by default, but an alternative location can be
+specified with the "-c" command-line option.
+
+Please look at the web site or in the example configuration file for more
+explanation of the various configuration settings.
+
+
+
+CONTRIBUTIONS AND ACKNOWLEDGEMENTS
+----------------------------------
+Fetch-crl3 is a complete re-write of the utility, but of course owes to the
+extensive experience and contributions made over time by the contributors to
+fetch-crl 1.x and 2.x, and to the people that reported bugs and feature
+requests. 
+The original fetch-crl was developed for the acclaimed EU DataGrid project by 
+Fabio Hernandez and many significant contributions were made by Steve Traylen.
+
+Fetch-crl3 was developed by David Groep, mainly for enjoyment, with the help 
+of large quantities of coffee and Spa Rood, and minimal quantities of sleep.
+
+This work is part of the research programme of the Dutch Foundation for 
+Fundamental Research on Matter (FOM), which is financially supported by the 
+Netherlands Organisation for Scientific Research (NWO).
+
+This work is part of the programme of BiG Grid, the Dutch e-Science Grid, 
+which is financially supported by the Nederlandse Organisatie voor 
+Wetenschappelijk Onderzoek (Netherlands Organisation for Scientific 
+Research, NWO). 
+
+SUPPORT
+-------
+Please send suggestions, bugs and feature requests (and certainly patches)
+to <fetch-crl-support@nikhef.nl>. Thanks a lot for your help!
+
+COPYRIGHT
+---------
+Copyright 2010-2013 David Goep
+                    National Institute for Sub-Atomic Physics, FOM-Nikhef
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+use these files except in compliance with the License.  You may obtain a copy 
+of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the 
+License for the specific language governing permissions and limitations 
+under the License.
+
