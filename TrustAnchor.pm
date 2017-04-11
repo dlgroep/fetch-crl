@@ -466,7 +466,16 @@ sub retrieveHTTP($$) {
     alarm 0; # make sure the alarm stops ticking, regardless of the eval
 
     if ( $@ ) { # died, alarm hit: server bad, so try next URL
-      $::log->verb(2,"HEAD error $url:", $@);
+      chomp($@);
+      my $shorterror = $@; $shorterror =~ s/\n.*$//gs;
+      $::log->verb(2,"HEAD error $url:", $shorterror);
+      # underlying socket library may be verybose - filter and qualify messages
+      if ( $shorterror ne $@ ) {
+        foreach my $errorline ( split(/\n/,$@) ) {
+          chomp($errorline); $errorline eq $shorterror and next; # nodups
+          $errorline and $::log->verb(4,"HEAD error detail:", $errorline);
+        }
+      }
       return undef;
     }
 
@@ -509,7 +518,15 @@ sub retrieveHTTP($$) {
 
   if ( $@ ) {
     chomp($@);
-    $::log->verb(0,"Download error $url:", $@);
+    my $shorterror = $@; $shorterror =~ s/\n.*$//gs;
+    $::log->verb(0,"Download error $url:", $shorterror);
+    # underlying socket library may be verybose - filter and qualify messages
+    if ( $shorterror ne $@ ) {
+      foreach my $errorline ( split(/\n/,$@) ) {
+        chomp($errorline); $errorline eq $shorterror and next; # nodups
+        $errorline and $::log->verb(4,"Download error detail:", $errorline);
+      }
+    }
     return undef;
   }
 
