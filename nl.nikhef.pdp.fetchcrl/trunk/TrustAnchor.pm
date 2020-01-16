@@ -423,9 +423,22 @@ sub retrieveHTTP($$) {
 
   $::log->verb(3,"Downloading data from $url");
   my $ua = LWP::UserAgent->new;
+
   $ua->agent('fetch-crl/'.$::cnf->{_}->{version} . ' ('.
              $ua->agent . '; '.$::cnf->{_}->{packager} . ')'
            );
+  # allow overriding of userAgent string to bypass Fortigates and like filters
+  if ( defined $::cnf->{$self->{"alias"}}->{user_agent} ) {
+    $ua->agent($::cnf->{$self->{"alias"}}->{user_agent});
+    $::log->verb(5,"Setting user agent for " .
+                   $self->{"alias"} . " to \"" .
+                   $::cnf->{$self->{"alias"}}->{user_agent} . "\"" );
+  } elsif ( defined $::cnf->{_}->{user_agent} ) {
+    $ua->agent($::cnf->{_}->{user_agent});
+    $::log->verb(5,"Setting user agent to global value \"" .
+                   $::cnf->{_}->{user_agent} . "\"" );
+  }
+
   $ua->timeout($self->{"httptimeout"});
   $ua->use_eval(0);
   if ( $self->{"http_proxy"} ) {

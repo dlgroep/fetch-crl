@@ -272,6 +272,13 @@
 # postexec = <path>
 #
 # ---------------------------------------------------------------------------
+# override the UserAgent string used for all downloads. This may be needed
+# if you hit an over-active firewall or proxy in your network path that 
+# blocks apparent libwww-perl user agents. Can also be set per trust anchor
+#
+# user_agent = <string>
+#
+# ---------------------------------------------------------------------------
 # override version or packager to influence the User-Agent header in http 
 # requests. But please leave them alone
 # version = 3.0
@@ -342,7 +349,7 @@
 #         override a global setting (no value possible)
 #
 # agingtolerance httptimeout nametemplate_der nametemplate_pem
-# cadir catemplate 
+# cadir catemplate user_agent
 #         set these to a local value (but they cannot be unset)
 #
 #
