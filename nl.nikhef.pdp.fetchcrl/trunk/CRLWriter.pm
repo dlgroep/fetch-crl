@@ -122,7 +122,27 @@ sub updatefile($$%) {
     return 0;
   };
 
-  if ( open FH,'>',$file ) {
+  # write new CRL to file ($file in $path) - attempting to do
+  # an atomic action to prevent a reace condition with clients
+  # but do not insist if the $path is not writable for new files
+  my $tmpcrlmode=(stat $file)[2] & 07777;
+  $::log->verb(5,"TMP file for $file mode $tmpcrlmode");
+  my $tmpcrl = File::Temp->new(DIR => $path, SUFFIX => '.tmp', 
+                               PERMS => $tmpcrlmode, UNLINK => 1);
+  if ( defined $tmpcrl ) { # we could create a tempfile next to current 
+    print $tmpcrl $content or 
+      $::log->err("Write to $tmpcrl: $!") and return undef;
+    # atomic move, but no need to restore from backup on failure
+    # and the unlink on destroy is implicit
+    chmod $tmpcrlmode,$tmpcrl or
+      $::log->err("chmod on $tmpcrl (to $tmpcrlmode): $!") and 
+      return undef;
+    rename($tmpcrl, $file) or 
+      $::log->err("rename $tmpcrl to $file: $!") and return undef;
+    # file was successfully renamed, so nothing left to unlink
+    $tmpcrl->unlink_on_destroy( 0 );
+  } elsif ( open FH,'>',$file ) { 
+    # no adjecent write possible, fall back to rewrite
     print FH $content or
       $::log->err("Write to $file: $!") and return undef;
     close FH or 
