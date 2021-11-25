@@ -7,8 +7,8 @@ files. It will install these for use with OpenSSL, NSS or third-party tools.
 
 Changes in 3.0.22-1
 ----------------------
-* fix racecondition in CRL file re-writing (for cases where the CRL directory 
-  itself is writable) (credits: TBA)
+* fix racecondition in CRL file re-writing, for cases where the CRL directory 
+  itself is writable (thanks to Arjen Nienhuis)
 
 Changes in 3.0.20-1
 ----------------------

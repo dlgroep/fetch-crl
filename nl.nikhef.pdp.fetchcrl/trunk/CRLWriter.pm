@@ -125,7 +125,7 @@ sub updatefile($$%) {
   # write new CRL to file ($file in $path) - attempting to do
   # an atomic action to prevent a reace condition with clients
   # but do not insist if the $path is not writable for new files
-  my $tmpcrlmode=(stat $file)[2] & 07777;
+  my $tmpcrlmode=((stat $file)[2] || 0644) & 07777;
   $::log->verb(5,"TMP file for $file mode $tmpcrlmode");
   my $tmpcrl = File::Temp->new(DIR => $path, SUFFIX => '.tmp', 
                                PERMS => $tmpcrlmode, UNLINK => 1);
