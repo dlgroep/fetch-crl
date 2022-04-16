@@ -1,0 +1,78 @@
+Installing fetch-crl3 and creating release packages
+===================================================
+(last updated: 2022-04-16)
+
+For ease of installation, the fetch-crl3 script that is to be installed is 
+a concatenation of all constituent perl packages. This way, there is no need
+to install its support packages in the system perllib path, or to set PERLLIB
+before execution. The downside: fetch-crl3 needs to be built into a release 
+from its constituents.
+
+# Source structure
+
+* fetch-crl3.pl.cin - entrypoint, config file parsing and processing of
+  commandline arguments. This file drives the trust anchor processing
+  and retrieval, including parallelism 
+  (fetch-crl3.pl will be created from this `.cin` file based on the variables 
+  in `config.mk`, thereby including the version and release number)
+
+* TrustAnchor.pm - read trust anchor meta-data and validation information
+  from the location directory, and provide the interface for per-trust
+  achor settings retrieval
+
+* CRL.pm - CRL validation (based on trust anchor validation data), and 
+  interface to retrieving CRL content attributes
+
+* CRLWriter.pm - write or overwrite CRLs in various formats, given a 
+  valid CRL and trust anchor meta-data
+
+* OSSL.pm - abstracted interface to OpenSSL v1+
+
+* FCLog.pm - log functions and error collation routines
+
+* ConfigTiny.pm - parting of ini-style configuration files, evolved
+  from the perl-standard Config::Tiny version 2.12, but with extended
+  (fetch-crl3) specific syntax
+
+* base64.pm - local fall-back in case MIME::Base64 is missing, inspired by 
+  the Perl 4 code from base64.pl by A. P. Barrett
+
+* clean-crl - simple shell script to remove stale CRLs from a location
+
+# Building fetch-crl
+
+Fetch-crl uses a makefile-driven combined 'build, install, package, and 
+release' model, inspired by the LCFG [1] config.mk/config.sh system.
+Makefile variable names follow GNU autoconf convensions.
+
+## Valid targets
+
+* `make fetch-crl` - just build fetch-crl (and its clone fetch-crl3.pl)
+
+* `make install` - install fetch-crl in its default location, set by
+  PREFIX (defaults to `/usr/sbin`)
+
+* `make tar` - built fetch-crl and bundle up the generated artifacts and
+  documentation, alongside a sample config, in a tarball.
+  Two tar-balls are created, the SuSE specific one including other init
+  scripts
+
+* `make rpm` - make both the tar-ball and - having generated the RPM
+  spec file using config.mk - create a source and binary RPM.
+
+  The RPM is _not_ signed by default - this has to be done by hand!
+
+* `make clean` - remove all generated artifacts
+
+Embedded version information is taken from the config.mk file.
+
+# Bugs?
+
+If you identify bugs, please file an issue for the fetch-crl github
+project: https://github.com/dlgroep/fetch-crl/issues
+
+# References
+
+[1] LCFG, https://homepages.inf.ed.ac.uk/roger/LCFG/ - inspiration
+    was passed through the EU DataGrid LCFG-ng system and early
+    Quattor build systems
