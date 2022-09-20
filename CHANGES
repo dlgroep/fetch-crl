@@ -5,6 +5,12 @@ The fetch-crl utility will retrieve certificate revocation lists (CRLs) for
 a set of installed trust anchors, based on crl_url files or IGTF-style info
 files. It will install these for use with OpenSSL, NSS or third-party tools.
 
+Changes in 3.0.23-rc
+----------------------
+* Add support for explicitly setting https_proxy for retrieval, while
+  making the earlier http_proxy setting also affect https retrievals. The
+  new https_proxy setting is mutually exclusie with "http_proxy=ENV"
+
 Changes in 3.0.22-1
 ----------------------
 * fix race condition in CRL file re-writing for cases where the CRL directory 
