@@ -182,7 +182,7 @@ sub loadAnchor($$) {
   foreach my $key ( qw / 
          prepend_url postpend_url agingtolerance 
          httptimeout proctimeout
-         nowarnings noerrors nocache http_proxy 
+         nowarnings noerrors nocache http_proxy https_proxy
          nametemplate_der nametemplate_pem 
          cadir catemplate statedir
       / ) {
@@ -202,7 +202,7 @@ sub loadAnchor($$) {
       $::cnf->{$self->{"anchorname"}}->{$key} or
       $::cnf->{_}->{$key};
   }
-  foreach my $key ( qw / nohttp_proxy noprepend_url nopostpend_url 
+  foreach my $key ( qw / nohttp_proxy nohttps_proxy noprepend_url nopostpend_url 
                          nostatedir / ) {
     (my $nokey = $key) =~ s/^no//;
     delete $self->{"$nokey"} if $::cnf->{$self->{"alias"}}->{$key} or
@@ -445,7 +445,15 @@ sub retrieveHTTP($$) {
     if ( $self->{"http_proxy"} =~ /^ENV/i ) {
       $ua->env_proxy();
     } else {
-      $ua->proxy("http", $self->{"http_proxy"});
+      $ua->proxy(["http","https"], $self->{"http_proxy"});
+    }
+  }
+  if ( $self->{"https_proxy"} ) {
+    if ( defined $self->{"http_proxy"} and ( $self->{"http_proxy"} =~ /^ENV/i ) ) {
+      $::log->warn("https_proxy setting cannot be used when ".
+                   "http_proxy is set to ENV, https_proxy setting ignored.");
+    } else {
+      $ua->proxy("https", $self->{"https_proxy"});
     }
   }
   # set request cache control if specified as valid in config
