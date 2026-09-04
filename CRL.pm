@@ -22,6 +22,8 @@ sub new {
   my $data = shift;
 
   $self->{"name"} = "unknown";
+  $self->{"verify_nextupdate"} = 1;
+  $self->{"verify_lastupdate"} = 1;
 
   $self->setName($name) if $name;
   $self->setData($data) if $data;
@@ -96,6 +98,36 @@ sub setData($$) {
   return 1;
 }
 
+sub setVerifyMode_NextUpdate($$) {
+  my $self = shift or die "Invalid invocation of CRL::setName\n";
+  my $mode = shift;
+  return undef unless defined $mode;
+  my $oldmode = $self->{"verify_nextupdate"};
+
+  if ( $mode ) {
+    $self->{"verify_nextupdate"} = 1;
+  } else {
+    $self->{"verify_nextupdate"} = 0;
+  }
+
+  return $oldmode;
+}
+
+sub setVerifyMode_LastUpdate($$) {
+  my $self = shift or die "Invalid invocation of CRL::setName\n";
+  my $mode = shift;
+  return undef unless defined $mode;
+  my $oldmode = $self->{"verify_lastupdate"};
+
+  if ( $mode ) {
+    $self->{"verify_lastupdate"} = 1;
+  } else {
+    $self->{"verify_lastupdate"} = 0;
+  }
+
+  return $oldmode;
+}
+
 sub getLastUpdate($) {
   my $self = shift or die "Invalid invocation of CRL::getLastUpdate\n";
   return $self->{"lastupdate"} || undef;
@@ -151,10 +183,12 @@ sub verify($@) {
     push @verifyStatus, "CRL nextUpdate determination failed";
   $self->{"lastupdate"} or
     push @verifyStatus, "CRL lastUpdate determination failed";
-  if ( $self->{"nextupdate"} and $self->{"nextupdate"} < time ) {
+  if ( $self->{"verify_nextupdate"} and 
+       ( $self->{"nextupdate"} and $self->{"nextupdate"} < time ) ) {
     push @verifyStatus, "CRL has nextUpdate time in the past";
   }
-  if ( $self->{"lastupdate"} and $self->{"lastupdate"} > time ) {
+  if ( $self->{"verify_lastupdate"} and 
+       ( $self->{"lastupdate"} and $self->{"lastupdate"} > time ) ) {
     push @verifyStatus, "CRL has lastUpdate time in the future";
   }
 

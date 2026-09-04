@@ -182,6 +182,7 @@ sub loadAnchor($$) {
   foreach my $key ( qw / 
          prepend_url postpend_url agingtolerance 
          httptimeout proctimeout
+         noverify_nextupdate noverify_lastupdate
          nowarnings noerrors nocache http_proxy https_proxy
          nametemplate_der nametemplate_pem 
          cadir catemplate statedir
@@ -722,6 +723,13 @@ sub verifyAndConvertCRLs($) {
     $::log->verb(4,"Verifying CRL $i for",$self->getAnchorName);
 
     my $crl = CRL->new($self->getAnchorName."/$i",$self->{"crl"}[$i]{"data"});
+
+    # when no local CRL is yet avaialble, and the retrieved CRL is outdated
+    # it may still be advisable to write it out and have the trust anchor
+    # fail rather than having no CRL and ignoring 'expired' certificates
+    # date verification (i.e. never write an expired CRL) is the default
+    $crl->setVerifyMode_NextUpdate(0) if $self->{"noverify_nextupdate"};
+    $crl->setVerifyMode_LastUpdate(0) if $self->{"noverify_lastupdate"};
     my @verifyMessages= $crl->verify(@{$self->{"cafile"}});
  
     # do additional checks on correlation between download and current
