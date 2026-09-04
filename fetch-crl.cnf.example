@@ -261,6 +261,21 @@
 # inet6glue
 #
 # ---------------------------------------------------------------------------
+# Write a CRL even if the downloaded CRL is expired or not yet valid. This
+# improves consistency if no CRLs have been downloaded prior, and an
+# expired CRL would otherwise result in no CRL being written at all for a
+# trust anchor. By ignoring expiry and futurism checks on (initial) download,
+# an expired, or not-yet valid, CRL will be written, effectively disabling
+# the CA. Can also be set per-trustanchor.
+# This can be a more fail-safe behaviour, especially after removal
+# of all CRLs and an explicitly-initiated download. For in using the
+# `--define` option on the command line:
+#   .... --define noverify_nextupdate= ...
+#
+# noverify_nextupdate
+# noverify_lastupdate
+#
+# ---------------------------------------------------------------------------
 # To run a script after the completion of every fetch-crl run, set this
 # path to point to an executable. The named program will be invoked 
 # with the following arguments
@@ -325,6 +340,20 @@
 # the new-format IGTF distribution before release 1.37 (1.33 up to and
 # including 1.36 also symlinked the .info file to the hash names)
 #nosymlinks
+#
+# ---------------------------------------------------------------------------
+# Write a CRL even if the downloaded CRL is expired or not yet valid. This 
+# improves consistency if no CRLs have been downloaded prior, and an 
+# expired CRL would otherwise result in no CRL being written at all for a
+# trust anchor. By ignoring expiry and futurism checks on (initial) download,
+# an expired, or not-yet valid, CRL will be written, effectively disabling 
+# the CA. Can be set per-trustanchor or globally.
+# This can be a more fail-safe behaviour, especially after removal
+# of all CRLs and an explicitly-initiated download. For in using the 
+# `--define` option on the command line:
+#   .... --define noverify_nextupdate= ...
+#noverify_nextupdate
+#noverify_lastupdate
 #
 # ---------------------------------------------------------------------------
 # To run a script after the successful completion of each CRL retrieval set

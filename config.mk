@@ -1,7 +1,7 @@
 #
-# @(#)$Id: config.mk,v 1.14 2009/09/21 20:22:32 pmacvsdg Exp $
+# @(#)config.mk FetchCRL3
 #
-VERSION=3.0.23
+VERSION=3.0.24
 RELEASE=1
 
 MANSECT=8
