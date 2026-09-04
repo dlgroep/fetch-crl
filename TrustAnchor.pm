@@ -573,7 +573,7 @@ sub retrieveFile($$) {
   my $self = shift;
   my $idx  = shift;
   my $url =  shift;
-  $url =~ /^file:\/*(\/.*)$/ or die "retrieveFile: non-file URL $url\n";
+  $url =~ /^file:\/\/(.*)$/ or die "retrieveFile: non-file URL $url\n";
   $::log->verb(4,"Retrieving data from $url");
 
   # for files the previous state does not matter, we retrieve it
@@ -593,7 +593,8 @@ sub retrieveFile($$) {
 
   my %metadata;
   $metadata{"lastmod"} = (stat($1))[9];
-  $metadata{"freshuntil"} = time;
+  $metadata{"freshuntil"} = 1; # for files there is no reason to cache but "0" cannot 
+                               # be used since it doubles as 'not set'
   $metadata{"sourceurl"} = $url;
 
   return ($data,%metadata) if wantarray;
