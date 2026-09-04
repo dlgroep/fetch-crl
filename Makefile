@@ -44,7 +44,7 @@ config.sh: Makefile $(_test_dep) config.mk
 	@echo dumpvars: >>makefile.tmp
 	@cat config.mk | \
 	 perl >>makefile.tmp -e 'my $$fmt = "\t\@echo \"-e \\\"s\@%s\@\$$(%s)g\\\" \\\\\"" ; while (<>) { $$v{$$1}=1 if /^([A-Za-z0-9_]+)\s*:?=.*$$/; } map { printf "$$fmt >>config.sh\n", $$_, $$_; } sort(keys(%v)); print "\n"; '
-	@echo '#!/bin/sh' >config.sh
+	@echo '#!/usr/bin/sh' >config.sh
 	@echo 'sed \' >>config.sh
 	@$(MAKE) -f makefile.tmp dumpvars >/dev/null
 	@echo ' -e "s/\@MSG\@/ ** Generated file : do not edit **/"'>>config.sh
@@ -72,14 +72,14 @@ configure: $(shell find . -name \*\.cin 2>/dev/null | sed -e 's/.cin//' || echo)
 install: configure
 	mkdir -p $(ETC)
 	mkdir -p $(PREFIX)
-	mkdir -p $(PREFIX)/sbin
+	mkdir -p $(PREFIX)/bin
 	mkdir -p $(PREFIX)/share
 	mkdir -p $(PREFIX)/share/doc
 	mkdir -p $(PREFIX)/share/doc/$(RELEASE)
 	mkdir -p $(PREFIX)/share/man
 	mkdir -p $(PREFIX)/share/man/man8
-	install -m755 fetch-crl              $(PREFIX)/sbin/fetch-crl
-	install -m755 clean-crl              $(PREFIX)/sbin/clean-crl
+	install -m755 fetch-crl              $(PREFIX)/bin/fetch-crl
+	install -m755 clean-crl              $(PREFIX)/bin/clean-crl
 	install -m644 fetch-crl-cron.cron    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.cron
 	install -m644 fetch-crl-cron.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-cron.init
 	install -m644 fetch-crl-boot.init    $(PREFIX)/share/doc/$(RELEASE)/fetch-crl-boot.init

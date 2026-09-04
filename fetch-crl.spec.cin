@@ -54,22 +54,22 @@ install -p -m 644 $RPM_BUILD_ROOT%{_usr}/share/doc/%{name}-%{version}/%{name}-cr
 
 %post
 # This adds the proper /etc/rc*.d links for the script
-/sbin/chkconfig --add %{name}-cron
-/sbin/chkconfig --add %{name}-boot
+/usr/bin/chkconfig --add %{name}-cron
+/usr/bin/chkconfig --add %{name}-boot
 
 %preun
 if [ $1 = 0 ] ; then
-    /sbin/service %{name}-cron stop >/dev/null 2>&1
-    /sbin/service %{name}-boot stop  >/dev/null 2>&1
-    /sbin/chkconfig --del %{name}-cron
-    /sbin/chkconfig --del %{name}-boot
+    /usr/bin/service %{name}-cron stop >/dev/null 2>&1
+    /usr/bin/service %{name}-boot stop  >/dev/null 2>&1
+    /usr/bin/chkconfig --del %{name}-cron
+    /usr/bin/chkconfig --del %{name}-boot
 fi
 
 
 %files
 %defattr(-,root,root,-)
-%{_sbindir}/fetch-crl
-%{_sbindir}/clean-crl
+%{_bindir}/fetch-crl
+%{_bindir}/clean-crl
 %{_initddir}/%{name}-cron
 %{_initddir}/%{name}-boot
 %{_localstatedir}/cache/fetch-crl

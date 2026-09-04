@@ -50,7 +50,7 @@ Makefile variable names follow GNU autoconf convensions.
 * `make fetch-crl` - just build fetch-crl (and its clone fetch-crl3.pl)
 
 * `make install` - install fetch-crl in its default location, set by
-  PREFIX (defaults to `/usr/sbin`)
+  PREFIX (defaults to `/usr/bin`)
 
 * `make tar` - built fetch-crl and bundle up the generated artifacts and
   documentation, alongside a sample config, in a tarball.

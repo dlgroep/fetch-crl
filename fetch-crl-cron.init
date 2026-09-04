@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/sh
 #
 # fetch-crl-cron  This shell script enables periodic CRL retrieval via cron
 #
