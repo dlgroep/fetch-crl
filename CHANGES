@@ -17,6 +17,8 @@ Changes in 3.0.24-1
   flags, in particular using the `--define` option on the command line.
 * allow the CRL URL `file:` scheme to accomodate relative paths. 
   Note that the URI file scheme must only be used in trusted contexts.
+* paths follow "/usr merge" pattern used in recent Linux distros and Solaris
+  (thanks and credit to https://github.com/traylenator)
 
 Changes in 3.0.23-1
 ----------------------
