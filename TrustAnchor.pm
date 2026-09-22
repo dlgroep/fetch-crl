@@ -183,7 +183,7 @@ sub loadAnchor($$) {
          prepend_url postpend_url agingtolerance 
          httptimeout proctimeout
          noverify_nextupdate noverify_lastupdate
-         nowarnings noerrors nocache http_proxy https_proxy
+         nowarnings noerrors nocache http_proxy https_proxy selective_http_proxy
          nametemplate_der nametemplate_pem 
          cadir catemplate statedir
       / ) {
@@ -446,7 +446,11 @@ sub retrieveHTTP($$) {
     if ( $self->{"http_proxy"} =~ /^ENV/i ) {
       $ua->env_proxy();
     } else {
-      $ua->proxy(["http","https"], $self->{"http_proxy"});
+      if ( defined $self->{"selective_http_proxy"} and $self->{"selective_http_proxy"} ) {
+        $ua->proxy(["http"], $self->{"http_proxy"});
+      } else {
+        $ua->proxy(["http","https"], $self->{"http_proxy"});
+      }
     }
   }
   if ( $self->{"https_proxy"} ) {
